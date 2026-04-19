@@ -1,13 +1,10 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
 
-function App() {
-  return (
-    <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
-      <h1>OpenSynk Desktop</h1>
-      <p>Solar, battery, and grid monitoring dashboard.</p>
-    </div>
-  )
-}
-
-ReactDOM.createRoot(document.getElementById('root')!).render(<App />)
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
