@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.db
+*.sqlite
+__pycache__/
+.pytest_cache/
+.venv/
+coverage/
+target/
+.DS_Store

@@ -1,0 +1,20 @@
+Development Roadmap
+Milestone 1 - Monitoring MVP
+Authentication flow
+Dashboard
+Current stats
+Local history
+24h charts
+CSV export
+Milestone 2 - Insights
+Tariff support
+Cost estimates
+Alerts
+Recommendations
+Historical comparisons
+Milestone 3 - Advanced Controls
+Battery reserve target
+Charge windows
+Inverter presets
+Confirmation flow
+Audit log
