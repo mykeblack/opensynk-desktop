@@ -54,6 +54,11 @@ export function DashboardPage() {
         <div>
           <h1>OpenSynk Desktop</h1>
           <p>Solar, battery, load and grid overview</p>
+          {data && (
+            <small style={{ color: '#94a3b8' }}>
+              Last updated: {new Date().toLocaleTimeString()}
+            </small>
+          )}
         </div>
         <button className="refresh-button" onClick={loadData}>
           Refresh
