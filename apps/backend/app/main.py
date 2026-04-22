@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.routes_sites import router as sites_router
 
 from app.api.routes_history import router as history_router
 from app.api.routes_live import router as live_router
@@ -31,3 +32,4 @@ def health():
 app.include_router(live_router)
 app.include_router(history_router)
 app.include_router(settings_router)
+app.include_router(sites_router)

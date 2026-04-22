@@ -1,10 +1,26 @@
 from fastapi import APIRouter
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db.database import SessionLocal
 from app.db.models import Settings
+from app.services.sunsynk_client import SunsynkClient
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
+
+
+class SettingsPayload(BaseModel):
+    api_base_url: str
+    access_token: str
+    poll_interval_seconds: int
+    selected_site: str
+    verify_ssl: bool
+
+
+class TestConnectionPayload(BaseModel):
+    api_base_url: str
+    access_token: str
+    verify_ssl: bool
 
 
 @router.get("")
@@ -20,6 +36,7 @@ def get_settings():
                 access_token="",
                 poll_interval_seconds=60,
                 selected_site="Home",
+                verify_ssl=True,
             )
             db.add(settings)
             db.commit()
@@ -30,6 +47,45 @@ def get_settings():
             "access_token": settings.access_token,
             "poll_interval_seconds": settings.poll_interval_seconds,
             "selected_site": settings.selected_site,
+            "verify_ssl": settings.verify_ssl,
         }
     finally:
         db.close()
+
+
+@router.post("")
+def save_settings(payload: SettingsPayload):
+    db: Session = SessionLocal()
+
+    try:
+        settings = db.query(Settings).first()
+
+        if not settings:
+            settings = Settings()
+            db.add(settings)
+
+        settings.api_base_url = payload.api_base_url
+        settings.access_token = payload.access_token
+        settings.poll_interval_seconds = payload.poll_interval_seconds
+        settings.selected_site = payload.selected_site
+        settings.verify_ssl = payload.verify_ssl
+
+        db.commit()
+        db.refresh(settings)
+
+        return {
+            "success": True,
+            "message": "Settings saved successfully",
+        }
+    finally:
+        db.close()
+
+
+@router.post("/test-connection")
+def test_connection(payload: TestConnectionPayload):
+    client = SunsynkClient(
+        base_url=payload.api_base_url,
+        access_token=payload.access_token,
+        verify_ssl=payload.verify_ssl,
+    )
+    return client.test_connection()
