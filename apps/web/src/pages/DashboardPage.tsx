@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getLiveSummary } from '../api/energy';
 import { SummaryCard } from '../components/SummaryCard';
 import type { LiveSummary } from '../types/energy';
+import { PowerFlowPanel } from '../components/PowerFlowPanel';
 import './DashboardPage.css';
 
 function formatWatts(value: number): string {
@@ -74,28 +75,32 @@ export function DashboardPage() {
       )}
 
       {data && !loading && (
-        <section className="summary-grid">
-          <SummaryCard
-            title="Solar"
-            value={formatWatts(data.solar_w)}
-            subtitle="Current PV generation"
-          />
-          <SummaryCard
-            title="Load"
-            value={formatWatts(data.load_w)}
-            subtitle="Current house demand"
-          />
-          <SummaryCard
-            title="Battery"
-            value={formatPercent(data.battery_soc)}
-            subtitle="Battery state of charge"
-          />
-          <SummaryCard
-            title="Grid"
-            value={formatWatts(Math.abs(data.grid_w))}
-            subtitle={getGridLabel(data.grid_w)}
-          />
-        </section>
+        <>
+          <section className="summary-grid">
+            <SummaryCard
+              title="Solar"
+              value={formatWatts(data.solar_w)}
+              subtitle="Current PV generation"
+            />
+            <SummaryCard
+              title="Load"
+              value={formatWatts(data.load_w)}
+              subtitle="Current house demand"
+            />
+            <SummaryCard
+              title="Battery"
+              value={formatPercent(data.battery_soc)}
+              subtitle="Battery state of charge"
+            />
+            <SummaryCard
+              title="Grid"
+              value={formatWatts(Math.abs(data.grid_w))}
+              subtitle={getGridLabel(data.grid_w)}
+            />
+          </section>
+
+          <PowerFlowPanel data={data} />
+        </>
       )}
     </main>
   );

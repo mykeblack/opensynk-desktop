@@ -1,0 +1,130 @@
+.power-flow-panel {
+  margin-top: 24px;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.power-flow-panel__header {
+  margin-bottom: 18px;
+}
+
+.power-flow-panel__header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #f9fafb;
+}
+
+.power-flow-panel__header p {
+  margin: 8px 0 0;
+  color: #94a3b8;
+}
+
+.power-flow-grid {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  grid-template-rows: auto 56px auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.power-node {
+  min-height: 120px;
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid #374151;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.power-node--solar {
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.16), rgba(31, 41, 55, 1));
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.power-node--load {
+  background: linear-gradient(180deg, rgba(14, 165, 233, 0.16), rgba(31, 41, 55, 1));
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.power-node--battery {
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.16), rgba(31, 41, 55, 1));
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.power-node--grid {
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.16), rgba(31, 41, 55, 1));
+  grid-column: 3;
+  grid-row: 3;
+}
+
+.power-node__label {
+  color: #9ca3af;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.power-node__value {
+  color: #f9fafb;
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.power-node__meta {
+  margin-top: 8px;
+  color: #cbd5e1;
+  font-size: 0.92rem;
+}
+
+.power-flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #60a5fa;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.power-flow-arrow--right {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.power-flow-arrow--down {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.power-flow-arrow--left {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+@media (max-width: 900px) {
+  .power-flow-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .power-node--solar,
+  .power-node--load,
+  .power-node--battery,
+  .power-node--grid,
+  .power-flow-arrow--right,
+  .power-flow-arrow--down,
+  .power-flow-arrow--left {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .power-flow-arrow {
+    transform: rotate(90deg);
+  }
+}
