@@ -5,18 +5,18 @@ from app.db.database import SessionLocal
 from app.db.models import Settings
 from app.services.sunsynk_client import SunsynkClient
 
-router = APIRouter(prefix="/api/sites", tags=["sites"])
+router = APIRouter(prefix="/api/inverters", tags=["inverters"])
 
 
 @router.get("")
-def get_sites():
+def get_inverters():
     db: Session = SessionLocal()
 
     try:
         settings = db.query(Settings).first()
 
         if not settings:
-            return []
+            return {"results": []}
 
         client = SunsynkClient(
             base_url=settings.api_base_url,
@@ -28,11 +28,13 @@ def get_sites():
             password=settings.password or "",
         )
 
-        sites = client.get_sites()
-        print("sites response:", sites)
-        return sites
+        data_token = settings.access_token or ""
+        result = client.get_inverters(data_token)
+
+        print("inverter probe result =", result)
+        return result
     except Exception as ex:
-        print("get_sites failed:", ex)
+        print("get_inverters failed:", ex)
         raise HTTPException(status_code=500, detail=str(ex))
     finally:
         db.close()

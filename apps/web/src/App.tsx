@@ -4,7 +4,7 @@ import { AlertsPage } from './pages/AlertsPage';
 import { BatteryPage } from './pages/BatteryPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { HistoryPage } from './pages/HistoryPage';
-import { SettingsPage } from './pages/SettingsPage';
+import SettingsPage from './pages/SettingsPage';
 import { TariffsPage } from './pages/TariffsPage';
 
 export default function App() {

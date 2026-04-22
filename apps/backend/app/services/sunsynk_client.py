@@ -19,7 +19,8 @@ class SunsynkClient:
         username: str = "",
         password: str = "",
     ):
-        self.base_url = base_url.rstrip("/")
+        self.oauth_base_url = (base_url or "https://openapi.sunsynk.net").rstrip("/")
+        self.data_base_url = "https://pv.inteless.com"
         self.access_token = access_token
         self.verify_ssl = verify_ssl
         self.app_key = app_key
@@ -31,8 +32,7 @@ class SunsynkClient:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def request_access_token(self) -> dict[str, Any]:
-        url_path = "/oauth/token"
-        url = f"{self.base_url}{url_path}"
+        url = f"{self.oauth_base_url}/oauth/token"
 
         nonce = str(uuid.uuid4())
 
@@ -107,6 +107,119 @@ class SunsynkClient:
                 "response_text": response.text[:2000],
                 "debug_text_to_sign": text_to_sign,
                 "debug_signature_headers": signature_headers,
+            }
+        except Exception as ex:
+            return {
+                "success": False,
+                "message": str(ex),
+                "url": url,
+            }
+
+    def get_inverters(self, data_token: str) -> dict[str, Any]:
+        url = (
+            "https://api.sunsynk.net/api/v1/inverters"
+            "?page=1"
+            "&limit=10"
+            "&total=0"
+            "&status=-1"
+            "&sn="
+            "&plantId="
+            "&type=-2"
+            "&softVer="
+            "&hmiVer="
+            "&agentCompanyId=-1"
+            "&gsn="
+        )
+
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {data_token}",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+            "Referer": "https://api.sunsynk.net/device/inverter",
+            "Origin": "https://api.sunsynk.net",
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/147.0.0.0 Safari/537.36"
+            ),
+        }
+
+        try:
+            response = requests.get(
+                url,
+                headers=headers,
+                timeout=15,
+                verify=self.verify_ssl,
+            )
+
+            print("inverters url =", url)
+            print("inverters status =", response.status_code)
+            print("inverters body =", response.text[:2000])
+
+            try:
+                response_json = response.json()
+            except Exception:
+                response_json = None
+
+            return {
+                "success": response.status_code < 400,
+                "status_code": response.status_code,
+                "url": response.url,
+                "response_json": response_json,
+                "response_text": response.text[:2000],
+            }
+
+        except Exception as ex:
+            return {
+                "success": False,
+                "status_code": None,
+                "url": url,
+                "message": str(ex),
+            }
+
+    def request_powerview_token(self) -> dict[str, Any]:
+        url = "https://pv.inteless.com/oauth/token"
+
+        body = {
+            "username": self.username,
+            "password": self.password,
+            "grant_type": "password",
+            "client_id": "csp-web",
+        }
+
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json;charset=UTF-8",
+            "Origin": "https://sunsynk.net",
+            "Referer": "https://sunsynk.net/",
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/99.0.4844.74 Safari/537.36"
+            ),
+        }
+
+        try:
+            response = requests.post(
+                url,
+                headers=headers,
+                json=body,
+                timeout=15,
+                verify=self.verify_ssl,
+            )
+
+            try:
+                response_json = response.json()
+            except Exception:
+                response_json = None
+
+            return {
+                "success": response.status_code < 400,
+                "status_code": response.status_code,
+                "url": response.url,
+                "response_json": response_json,
+                "response_text": response.text[:2000],
             }
         except Exception as ex:
             return {

@@ -13,6 +13,18 @@ export interface SettingsResponse {
   verify_ssl: boolean;
 }
 
+export interface SaveSettingsPayload {
+  api_base_url: string;
+  access_token: string;
+  app_key: string;
+  app_secret: string;
+  username: string;
+  password: string;
+  poll_interval_seconds: number;
+  selected_site: string;
+  verify_ssl: boolean;
+}
+
 export interface SaveSettingsResponse {
   success: boolean;
   message: string;

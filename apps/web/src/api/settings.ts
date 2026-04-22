@@ -1,5 +1,6 @@
 import { apiGet } from './client';
 import type {
+  SaveSettingsPayload,
   SaveSettingsResponse,
   SettingsResponse,
   TestConnectionResponse,
@@ -13,7 +14,7 @@ export async function getSettings(): Promise<SettingsResponse> {
 }
 
 export async function saveSettings(
-  payload: SettingsResponse,
+  payload: SaveSettingsPayload,
 ): Promise<SaveSettingsResponse> {
   const response = await fetch(`${API_BASE_URL}/api/settings`, {
     method: 'POST',

@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes_sites import router as sites_router
 
 from app.api.routes_history import router as history_router
 from app.api.routes_live import router as live_router
 from app.api.routes_settings import router as settings_router
 from app.services.sample_generator import start_sample_generator
+from app.api.routes_inverters import router as inverters_router
 
 app = FastAPI(title="OpenSynk Desktop Backend")
 start_sample_generator()
@@ -32,4 +32,4 @@ def health():
 app.include_router(live_router)
 app.include_router(history_router)
 app.include_router(settings_router)
-app.include_router(sites_router)
+app.include_router(inverters_router)
