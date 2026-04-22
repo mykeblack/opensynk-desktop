@@ -4,8 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes_history import router as history_router
 from app.api.routes_live import router as live_router
 from app.api.routes_settings import router as settings_router
+from app.services.sample_generator import start_sample_generator
 
 app = FastAPI(title="OpenSynk Desktop Backend")
+start_sample_generator()
 
 app.add_middleware(
     CORSMiddleware,
