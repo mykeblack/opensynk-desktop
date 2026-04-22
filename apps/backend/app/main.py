@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.routes_history import router as history_router
+from app.api.routes_live import router as live_router
+from app.api.routes_settings import router as settings_router
+
 app = FastAPI(title="OpenSynk Desktop Backend")
 
 app.add_middleware(
@@ -16,15 +20,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
-@app.get("/api/live/summary")
-def live_summary():
-    return {
-        "solar_w": 3200,
-        "load_w": 1800,
-        "battery_soc": 67,
-        "grid_w": -450,
-    }
+
+app.include_router(live_router)
+app.include_router(history_router)
+app.include_router(settings_router)
