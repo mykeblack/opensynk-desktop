@@ -1,0 +1,26 @@
+.summary-card {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  }
+  
+  .summary-card__title {
+    font-size: 0.95rem;
+    color: #9ca3af;
+    margin-bottom: 10px;
+  }
+  
+  .summary-card__value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f9fafb;
+    line-height: 1.1;
+  }
+  
+  .summary-card__subtitle {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+  }

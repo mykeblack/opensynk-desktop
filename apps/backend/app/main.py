@@ -1,6 +1,18 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="OpenSynk Desktop Backend")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health():
@@ -9,8 +21,8 @@ def health():
 @app.get("/api/live/summary")
 def live_summary():
     return {
-        "solar_w": 0,
-        "load_w": 0,
-        "battery_soc": 0,
-        "grid_w": 0
+        "solar_w": 3200,
+        "load_w": 1800,
+        "battery_soc": 67,
+        "grid_w": -450,
     }
