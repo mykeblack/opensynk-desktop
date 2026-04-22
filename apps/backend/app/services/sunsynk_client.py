@@ -1,114 +1,89 @@
 from typing import Any
+import base64
 import hashlib
 import hmac
 import json
-import time
-import uuid
-
 import requests
 import urllib3
+import uuid
 
 
 class SunsynkClient:
-   def __init__(
-    self,
-    base_url: str,
-    access_token: str,
-    verify_ssl: bool = True,
-    app_key: str = "",
-    app_secret: str = "",
-    username: str = "",
-    password: str = "",
-):
-    self.base_url = base_url.rstrip("/")
-    self.access_token = access_token
-    self.verify_ssl = verify_ssl
-    self.app_key = app_key
-    self.app_secret = app_secret
-    self.username = username
-    self.password = password
+    def __init__(
+        self,
+        base_url: str,
+        access_token: str,
+        verify_ssl: bool = True,
+        app_key: str = "",
+        app_secret: str = "",
+        username: str = "",
+        password: str = "",
+    ):
+        self.base_url = base_url.rstrip("/")
+        self.access_token = access_token
+        self.verify_ssl = verify_ssl
+        self.app_key = app_key
+        self.app_secret = app_secret
+        self.username = username
+        self.password = password
 
-    if not self.verify_ssl:
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        
-    def _headers(self) -> dict[str, str]:
-        return {
-            "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json",
-        }
-
-    def test_connection(self) -> dict[str, Any]:
-        url = self.base_url
-
-        try:
-            response = requests.get(
-                url,
-                timeout=10,
-                verify=self.verify_ssl,
-            )
-
-            return {
-                "success": True,
-                "message": f"Host reachable, status {response.status_code}",
-                "url": response.url,
-                "response_text": response.text[:300],
-            }
-        except Exception as ex:
-            return {
-                "success": False,
-                "message": str(ex),
-                "url": url,
-            }
-
-    def get_sites(self) -> list[dict[str, Any]]:
-        response = requests.get(
-            f"{self.base_url}/api/v1/sites",
-            headers=self._headers(),
-            timeout=10,
-            verify=self.verify_ssl,
-        )
-
-        response.raise_for_status()
-
-        data = response.json()
-        return data if isinstance(data, list) else []
+        if not self.verify_ssl:
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def request_access_token(self) -> dict[str, Any]:
         url_path = "/oauth/token"
         url = f"{self.base_url}{url_path}"
 
         nonce = str(uuid.uuid4())
-        timestamp = str(int(time.time() * 1000))
 
         body = {
             "username": self.username,
             "password": self.password,
             "grant_type": "password",
+            "client_id": "openapi",
         }
 
         body_json = json.dumps(body, separators=(",", ":"))
 
-        string_to_sign = (
-            f"POST\n"
-            f"application/json\n"
-            f"{hashlib.sha256(body_json.encode()).hexdigest()}\n"
-            f"{url_path}"
-        )
-
-        signature = hmac.new(
-            self.app_secret.encode(),
-            string_to_sign.encode(),
-            hashlib.sha256,
-        ).hexdigest().upper()
+        md5_digest = hashlib.md5(body_json.encode("utf-8")).digest()
+        content_md5 = base64.b64encode(md5_digest).decode("utf-8")
 
         headers = {
-            "Content-Type": "application/json",
-            "X-Ca-Key": self.app_key,
+            "accept": "application/json",
+            "content-type": "application/json",
+            "Content-MD5": content_md5,
             "X-Ca-Nonce": nonce,
-            "X-Ca-Timestamp": timestamp,
-            "X-Ca-Signature": signature,
-            "X-Ca-Signature-Headers": "X-Ca-Key,X-Ca-Nonce,X-Ca-Timestamp",
+            "X-Ca-Key": self.app_key,
         }
+
+        headers_to_sign = {
+            "x-ca-key": self.app_key,
+            "x-ca-nonce": nonce,
+        }
+        sorted_header_keys = sorted(headers_to_sign.keys())
+        signature_headers = ",".join(sorted_header_keys)
+
+        text_to_sign = ""
+        text_to_sign += "POST\n"
+        text_to_sign += "application/json\n"
+        text_to_sign += content_md5 + "\n"
+        text_to_sign += "application/json\n"
+        text_to_sign += "\n"
+
+        for key in sorted_header_keys:
+            text_to_sign += f"{key}:{headers_to_sign[key]}\n"
+
+        text_to_sign += url_path
+
+        signature_digest = hmac.new(
+            self.app_secret.encode("utf-8"),
+            text_to_sign.encode("utf-8"),
+            hashlib.sha256,
+        ).digest()
+        signature = base64.b64encode(signature_digest).decode("utf-8")
+
+        headers["X-Ca-Signature"] = signature
+        headers["X-Ca-Signature-Headers"] = signature_headers
 
         try:
             response = requests.post(
@@ -130,6 +105,8 @@ class SunsynkClient:
                 "url": response.url,
                 "response_json": response_json,
                 "response_text": response.text[:2000],
+                "debug_text_to_sign": text_to_sign,
+                "debug_signature_headers": signature_headers,
             }
         except Exception as ex:
             return {

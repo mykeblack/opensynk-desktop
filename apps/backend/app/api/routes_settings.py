@@ -56,7 +56,10 @@ def get_settings():
 
         return {
             "api_base_url": settings.api_base_url,
-            "access_token": settings.access_token,
+            "access_token": settings.access_token or "",
+            "refresh_token": settings.refresh_token or "",
+            "token_type": settings.token_type or "",
+            "token_expires_in": settings.token_expires_in,
             "app_key": settings.app_key or "",
             "app_secret": settings.app_secret or "",
             "username": settings.username or "",
@@ -103,14 +106,61 @@ def save_settings(payload: SettingsPayload):
 
 @router.post("/test-connection")
 def test_connection(payload: TestConnectionPayload):
-    client = SunsynkClient(
-        base_url=payload.api_base_url,
-        access_token=payload.access_token,
-        verify_ssl=payload.verify_ssl,
-        app_key=payload.app_key,
-        app_secret=payload.app_secret,
-        username=payload.username,
-        password=payload.password,
-    )
+    db: Session = SessionLocal()
 
-    return client.request_access_token()
+    try:
+        settings = db.query(Settings).first()
+
+        if not settings:
+            settings = Settings()
+            db.add(settings)
+
+        settings.api_base_url = payload.api_base_url
+        settings.app_key = payload.app_key
+        settings.app_secret = payload.app_secret
+        settings.username = payload.username
+        settings.password = payload.password
+        settings.verify_ssl = payload.verify_ssl
+
+        client = SunsynkClient(
+            base_url=payload.api_base_url,
+            access_token=payload.access_token,
+            verify_ssl=payload.verify_ssl,
+            app_key=payload.app_key,
+            app_secret=payload.app_secret,
+            username=payload.username,
+            password=payload.password,
+        )
+
+        result = client.request_access_token()
+
+        if result.get("success") and result.get("response_json"):
+            response_json = result["response_json"]
+            data = response_json.get("data", {})
+
+            settings.access_token = data.get("access_token", "")
+            settings.refresh_token = data.get("refresh_token", "")
+            settings.token_type = data.get("token_type", "")
+            settings.token_expires_in = data.get("expires_in")
+
+            db.commit()
+            db.refresh(settings)
+
+            return {
+                "success": True,
+                "message": "Access token retrieved successfully",
+                "status_code": result.get("status_code"),
+                "url": result.get("url"),
+                "token_type": settings.token_type,
+                "expires_in": settings.token_expires_in,
+            }
+
+        return {
+            "success": False,
+            "message": result.get("message", "Failed to retrieve access token"),
+            "status_code": result.get("status_code"),
+            "url": result.get("url"),
+            "response_text": result.get("response_text"),
+        }
+    finally:
+        db.close()

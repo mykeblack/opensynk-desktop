@@ -14,11 +14,12 @@ export function SettingsPage() {
   const [testingConnection, setTestingConnection] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [testDetails, setTestDetails] = useState<string | null>(null);
   const [appKey, setAppKey] = useState('');
   const [appSecret, setAppSecret] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [tokenType, setTokenType] = useState('');
+  const [tokenExpiresIn, setTokenExpiresIn] = useState<number | null>(null);
 
   useEffect(() => {
     async function loadSettings() {
@@ -26,6 +27,8 @@ export function SettingsPage() {
         setLoading(true);
         setErrorMessage(null);
         setTestDetails(null);
+        setTokenType(settings.token_type);
+        setTokenExpiresIn(settings.token_expires_in);
 
         const settings = await getSettings();
 
@@ -82,7 +85,6 @@ export function SettingsPage() {
       setTestingConnection(true);
       setSuccessMessage(null);
       setErrorMessage(null);
-      setTestDetails(null);
 
       const response = await testConnection({
         api_base_url: apiBaseUrl,
@@ -96,34 +98,27 @@ export function SettingsPage() {
 
       if (response.success) {
         setSuccessMessage(
-          response.site_count !== undefined
-            ? `${response.message}. Found ${response.site_count} site(s).`
-            : response.message,
+          response.expires_in
+            ? `Access token refreshed successfully. Expires in ${response.expires_in} seconds.`
+            : 'Access token refreshed successfully.',
         );
 
-        setTestDetails(
-          response.url
-            ? `URL: ${response.url}`
-            : null,
-        );
+        if (response.token_type) {
+          setTokenType(response.token_type);
+        }
+        if (response.expires_in !== undefined) {
+          setTokenExpiresIn(response.expires_in);
+        }
       } else {
-        setErrorMessage(response.message);
-
-        const parts = [
-          response.status_code ? `Status: ${response.status_code}` : null,
-          response.url ? `URL: ${response.url}` : null,
-          response.response_json
-            ? `JSON:\n${JSON.stringify(response.response_json, null, 2)}`
-            : null,
-          response.response_text ? `Response:\n${response.response_text}` : null,
-        ].filter(Boolean);
-
-        setTestDetails(parts.length > 0 ? parts.join('\n\n') : null);
+        setErrorMessage(
+          response.status_code
+            ? `Token request failed with status ${response.status_code}`
+            : response.message || 'Failed to retrieve access token',
+        );
       }
     } catch (err) {
-      console.error('Failed to test connection', err);
-      setErrorMessage('Failed to test connection');
-      setTestDetails(null);
+      console.error('Failed to get access token', err);
+      setErrorMessage('Failed to retrieve access token');
     } finally {
       setTestingConnection(false);
     }
@@ -153,10 +148,11 @@ export function SettingsPage() {
               {errorMessage}
             </div>
           )}
-          
-          {testDetails && (
-            <div className="settings-debug">
-              <pre>{testDetails}</pre>
+
+          {tokenType && (
+            <div className="settings-status settings-status--success">
+              Token type: {tokenType}
+              {tokenExpiresIn ? ` • Expires in ${tokenExpiresIn} seconds` : ''}
             </div>
           )}
 
@@ -288,7 +284,7 @@ export function SettingsPage() {
           <section className="settings-panel">
             <div className="settings-panel__header">
               <h2>Actions</h2>
-              <p>Test and save your configuration.</p>
+              <p>Retrieve and store a valid Sunsynk access token, then save your configuration.</p>
             </div>
 
             <div className="settings-actions">
@@ -297,7 +293,7 @@ export function SettingsPage() {
                 onClick={handleTestConnection}
                 disabled={testingConnection}
               >
-                {testingConnection ? 'Testing...' : 'Test API Host'}
+                {testingConnection ? 'Testing...' : 'Get Access Token'}
               </button>
 
               <button
