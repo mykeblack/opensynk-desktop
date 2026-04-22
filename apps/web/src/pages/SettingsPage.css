@@ -136,3 +136,19 @@
   border: 1px solid rgba(245, 158, 11, 0.35);
   color: #fde68a;
 }
+
+.settings-debug {
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #334155;
+  color: #cbd5e1;
+}
+
+.settings-debug pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+}

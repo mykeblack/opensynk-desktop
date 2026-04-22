@@ -14,12 +14,18 @@ export function SettingsPage() {
   const [testingConnection, setTestingConnection] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [testDetails, setTestDetails] = useState<string | null>(null);
+  const [appKey, setAppKey] = useState('');
+  const [appSecret, setAppSecret] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   useEffect(() => {
     async function loadSettings() {
       try {
         setLoading(true);
         setErrorMessage(null);
+        setTestDetails(null);
 
         const settings = await getSettings();
 
@@ -28,6 +34,10 @@ export function SettingsPage() {
         setPollInterval(settings.poll_interval_seconds);
         setSelectedSite(settings.selected_site);
         setVerifySsl(settings.verify_ssl);
+        setAppKey(settings.app_key);
+        setAppSecret(settings.app_secret);
+        setUsername(settings.username);
+        setPassword(settings.password);
       } catch (err) {
         console.error('Failed to load settings', err);
         setErrorMessage('Failed to load settings');
@@ -44,6 +54,7 @@ export function SettingsPage() {
       setSaving(true);
       setSuccessMessage(null);
       setErrorMessage(null);
+      setTestDetails(null);
 
       const response = await saveSettings({
         api_base_url: apiBaseUrl,
@@ -51,6 +62,10 @@ export function SettingsPage() {
         poll_interval_seconds: pollInterval,
         selected_site: selectedSite,
         verify_ssl: verifySsl,
+        app_key: appKey,
+        app_secret: appSecret,
+        username: username,
+        password: password,
       });
 
       setSuccessMessage(response.message);
@@ -67,10 +82,15 @@ export function SettingsPage() {
       setTestingConnection(true);
       setSuccessMessage(null);
       setErrorMessage(null);
+      setTestDetails(null);
 
       const response = await testConnection({
         api_base_url: apiBaseUrl,
         access_token: accessToken,
+        app_key: appKey,
+        app_secret: appSecret,
+        username: username,
+        password: password,
         verify_ssl: verifySsl,
       });
 
@@ -80,12 +100,30 @@ export function SettingsPage() {
             ? `${response.message}. Found ${response.site_count} site(s).`
             : response.message,
         );
+
+        setTestDetails(
+          response.url
+            ? `URL: ${response.url}`
+            : null,
+        );
       } else {
         setErrorMessage(response.message);
+
+        const parts = [
+          response.status_code ? `Status: ${response.status_code}` : null,
+          response.url ? `URL: ${response.url}` : null,
+          response.response_json
+            ? `JSON:\n${JSON.stringify(response.response_json, null, 2)}`
+            : null,
+          response.response_text ? `Response:\n${response.response_text}` : null,
+        ].filter(Boolean);
+
+        setTestDetails(parts.length > 0 ? parts.join('\n\n') : null);
       }
     } catch (err) {
       console.error('Failed to test connection', err);
       setErrorMessage('Failed to test connection');
+      setTestDetails(null);
     } finally {
       setTestingConnection(false);
     }
@@ -115,6 +153,12 @@ export function SettingsPage() {
               {errorMessage}
             </div>
           )}
+          
+          {testDetails && (
+            <div className="settings-debug">
+              <pre>{testDetails}</pre>
+            </div>
+          )}
 
           <section className="settings-panel">
             <div className="settings-panel__header">
@@ -142,6 +186,50 @@ export function SettingsPage() {
                   onChange={(e) => setAccessToken(e.target.value)}
                   placeholder="Enter Sunsynk access token"
                 />
+
+                <div className="settings-field">
+                  <label htmlFor="appKey">App Key</label>
+                  <input
+                    id="appKey"
+                    type="text"
+                    value={appKey}
+                    onChange={(e) => setAppKey(e.target.value)}
+                    placeholder="Enter Sunsynk app key"
+                  />
+                </div>
+
+                <div className="settings-field">
+                  <label htmlFor="appSecret">App Secret</label>
+                  <input
+                    id="appSecret"
+                    type="password"
+                    value={appSecret}
+                    onChange={(e) => setAppSecret(e.target.value)}
+                    placeholder="Enter Sunsynk app secret"
+                  />
+                </div>
+
+                <div className="settings-field">
+                  <label htmlFor="username">Sunsynk Username</label>
+                  <input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter Sunsynk username"
+                  />
+                </div>
+
+                <div className="settings-field">
+                  <label htmlFor="password">Sunsynk Password</label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter Sunsynk password"
+                  />
+                </div>
               </div>
 
               <div className="settings-field">
@@ -209,7 +297,7 @@ export function SettingsPage() {
                 onClick={handleTestConnection}
                 disabled={testingConnection}
               >
-                {testingConnection ? 'Testing...' : 'Test Connection'}
+                {testingConnection ? 'Testing...' : 'Test API Host'}
               </button>
 
               <button

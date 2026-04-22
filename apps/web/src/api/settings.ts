@@ -33,6 +33,10 @@ export async function saveSettings(
 export async function testConnection(payload: {
   api_base_url: string;
   access_token: string;
+  app_key: string;
+  app_secret: string;
+  username: string;
+  password: string;
   verify_ssl: boolean;
 }): Promise<TestConnectionResponse> {
   const response = await fetch(`${API_BASE_URL}/api/settings/test-connection`, {

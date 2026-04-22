@@ -1,6 +1,10 @@
 export interface SettingsResponse {
   api_base_url: string;
   access_token: string;
+  app_key: string;
+  app_secret: string;
+  username: string;
+  password: string;
   poll_interval_seconds: number;
   selected_site: string;
   verify_ssl: boolean;
@@ -13,6 +17,10 @@ export interface SaveSettingsResponse {
 
 export interface TestConnectionResponse {
   success: boolean;
-  message: string;
+  message?: string;
+  status_code?: number;
   site_count?: number;
+  url?: string;
+  response_text?: string;
+  response_json?: unknown;
 }
