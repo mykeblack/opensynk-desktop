@@ -4,11 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes_history import router as history_router
 from app.api.routes_live import router as live_router
 from app.api.routes_settings import router as settings_router
-from app.services.sample_generator import start_sample_generator
 from app.api.routes_inverters import router as inverters_router
+from app.services.sunsynk_poller import start_poller
 
 app = FastAPI(title="OpenSynk Desktop Backend")
-start_sample_generator()
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,6 +26,10 @@ app.add_middleware(
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+@app.on_event("startup")
+def startup_event():
+    start_poller()
 
 
 app.include_router(live_router)

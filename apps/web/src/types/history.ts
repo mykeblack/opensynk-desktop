@@ -1,12 +1,12 @@
 export interface PowerHistoryPoint {
-  time: string;
+  time: string | null;
   solar_w: number;
   load_w: number;
-  grid_w: number;
+  battery_soc: number;
   battery_w: number;
+  grid_w: number;
 }
 
 export interface PowerHistoryResponse {
-  range: string;
   points: PowerHistoryPoint[];
 }

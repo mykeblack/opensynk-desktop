@@ -20,7 +20,8 @@ class Settings(Base):
     poll_interval_seconds = Column(Integer, nullable=False, default=60)
     selected_site = Column(String, nullable=True)
     verify_ssl = Column(Boolean, nullable=False, default=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    data_mode = Column(String, nullable=False, default="demo")
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),

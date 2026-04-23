@@ -8,34 +8,29 @@ router = APIRouter(prefix="/api/history", tags=["history"])
 
 
 @router.get("/power")
-def history_power(range: str = "24h"):
+def history_power():
     db: Session = SessionLocal()
 
     try:
         samples = (
             db.query(LiveSample)
             .order_by(LiveSample.timestamp.asc())
-            .limit(24)
+            .limit(500)
             .all()
         )
 
-        if not samples:
-            return {"range": range, "points": []}
-
-        points = [
-            {
-                "time": sample.timestamp.strftime("%H:%M"),
-                "solar_w": sample.solar_w,
-                "load_w": sample.load_w,
-                "grid_w": sample.grid_w,
-                "battery_w": sample.battery_w,
-            }
-            for sample in samples
-        ]
-
         return {
-            "range": range,
-            "points": points,
+            "points": [
+                {
+                    "time": s.timestamp.isoformat() if s.timestamp else None,
+                    "solar_w": s.solar_w,
+                    "load_w": s.load_w,
+                    "battery_soc": s.battery_soc,
+                    "battery_w": s.battery_w,
+                    "grid_w": s.grid_w,
+                }
+                for s in samples
+            ]
         }
     finally:
         db.close()

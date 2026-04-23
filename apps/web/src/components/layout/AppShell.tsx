@@ -3,13 +3,20 @@ import { Sidebar } from './Sidebar';
 import './AppShell.css';
 
 interface AppShellProps {
-  children: ReactNode;
+  children: React.ReactNode;
+  username?: string;
+  mode?: 'demo' | 'live';
+  onLogout?: () => void;
 }
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, username, mode, onLogout }: AppShellProps) {
   return (
     <div className="app-shell">
-      <Sidebar />
+      <Sidebar
+        username={username}
+        mode={mode}
+        onLogout={onLogout}
+      />
       <div className="app-shell__content">
         {children}
       </div>

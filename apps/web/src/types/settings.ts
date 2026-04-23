@@ -11,6 +11,7 @@ export interface SettingsResponse {
   poll_interval_seconds: number;
   selected_site: string;
   verify_ssl: boolean;
+  data_mode: 'demo' | 'live';
 }
 
 export interface SaveSettingsPayload {
@@ -23,6 +24,7 @@ export interface SaveSettingsPayload {
   poll_interval_seconds: number;
   selected_site: string;
   verify_ssl: boolean;
+  data_mode: 'demo' | 'live';
 }
 
 export interface SaveSettingsResponse {
@@ -38,4 +40,5 @@ export interface TestConnectionResponse {
   response_text?: string;
   token_type?: string;
   expires_in?: number;
+  access_token?: string;
 }

@@ -88,6 +88,7 @@ export default function SettingsPage() {
         poll_interval_seconds: pollInterval,
         selected_site: selectedSite,
         verify_ssl: verifySsl,
+        data_mode: username.trim().toLowerCase() === 'demo' ? 'demo' : 'live',
       });
 
       if (response.success) {
@@ -132,6 +133,10 @@ export default function SettingsPage() {
 
         if (response.expires_in !== undefined) {
           setTokenExpiresIn(response.expires_in);
+        }
+
+        if (response.access_token) {
+          setAccessToken(response.access_token);
         }
 
         try {
