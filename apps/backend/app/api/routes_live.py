@@ -34,6 +34,7 @@ def live_summary():
             "battery_soc": latest.battery_soc,
             "battery_w": latest.battery_w,
             "grid_w": latest.grid_w,
+            "timestamp": latest.timestamp.isoformat() if latest.timestamp else None,
         }
 
     finally:
