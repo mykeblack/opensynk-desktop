@@ -12,83 +12,74 @@ import { TariffsPage } from './pages/TariffsPage';
 type AppMode = 'demo' | 'live';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    localStorage.getItem('opensynk_logged_in') === 'true'
-  );
+  const storedToken =
+    localStorage.getItem('opensynk_session_token') ||
+    sessionStorage.getItem('opensynk_session_token');
 
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(storedToken));
   const [appMode, setAppMode] = useState<AppMode>(
-    (localStorage.getItem('opensynk_mode') as AppMode) || 'demo'
+    (localStorage.getItem('opensynk_mode') as AppMode) || 'demo',
   );
-
   const [username, setUsername] = useState(
-    localStorage.getItem('opensynk_username') || ''
+    localStorage.getItem('opensynk_username') || '',
   );
 
-  async function handleLogin(name: string, mode: AppMode) {
-    setUsername(name);
+  function handleLoginSuccess(
+    email: string,
+    mode: AppMode,
+    sessionToken: string,
+    keepSignedIn: boolean,
+  ) {
+    setUsername(email);
     setAppMode(mode);
     setIsLoggedIn(true);
 
-    localStorage.setItem('opensynk_username', name);
+    localStorage.setItem('opensynk_username', email);
     localStorage.setItem('opensynk_mode', mode);
-    localStorage.setItem('opensynk_logged_in', 'true');
 
-    await fetch('http://127.0.0.1:8000/api/settings/set-mode', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode }),
-    });
+    if (keepSignedIn) {
+      localStorage.setItem('opensynk_logged_in', 'true');
+      localStorage.setItem('opensynk_session_token', sessionToken);
+      sessionStorage.removeItem('opensynk_session_token');
+    } else {
+      sessionStorage.setItem('opensynk_session_token', sessionToken);
+      localStorage.removeItem('opensynk_logged_in');
+      localStorage.removeItem('opensynk_session_token');
+    }
   }
 
   function handleLogout() {
     setIsLoggedIn(false);
+    setUsername('');
+    setAppMode('demo');
+
     localStorage.removeItem('opensynk_logged_in');
+    localStorage.removeItem('opensynk_username');
+    localStorage.removeItem('opensynk_mode');
+    localStorage.removeItem('opensynk_session_token');
+    sessionStorage.removeItem('opensynk_session_token');
   }
 
   if (!isLoggedIn) {
-    return <LoginPage onLogin={handleLogin} />;
+    return <LoginPage onLogin={handleLoginSuccess} />;
   }
 
   return (
     <BrowserRouter>
       <AppShell
-          username={username}
-          mode={appMode}
-          onLogout={handleLogout}
-        >
+        username={username}
+        mode={appMode}
+        onLogout={handleLogout}
+      >
         <Routes>
-          <Route
-            path="/"
-            element={<Navigate to="/dashboard" replace />}
-          />
-          <Route
-            path="/dashboard"
-            element={<DashboardPage />}
-          />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/battery" element={<BatteryPage />} />
           <Route path="/tariffs" element={<TariffsPage />} />
           <Route path="/alerts" element={<AlertsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
-
-        <div
-          style={{
-            position: 'fixed',
-            right: 16,
-            bottom: 16,
-            background: '#111827',
-            color: '#e5e7eb',
-            border: '1px solid #374151',
-            borderRadius: 12,
-            padding: '10px 14px',
-            fontSize: '0.9rem',
-            boxShadow: '0 10px 24px rgba(0, 0, 0, 0.2)',
-          }}
-        >
-          Signed in as <strong>{username}</strong> • Mode:{' '}
-          <strong>{appMode === 'demo' ? 'Demo' : 'Live'}</strong>
-        </div>
       </AppShell>
     </BrowserRouter>
   );

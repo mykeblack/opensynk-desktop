@@ -14,6 +14,7 @@ import {
   Home,
   Leaf,
   PoundSterling,
+  RadioTower,
   Sun,
   Thermometer,
   TrendingUp,
@@ -75,35 +76,6 @@ function BatteryLevelIcon({ soc, size = 54 }: { soc: number; size?: number }) {
       })}
     </svg>
   );
-}
-
-
-function PylonIcon({ size = 56, strokeWidth = 2.2 }: { size?: number; strokeWidth?: number }) {
-  return (
-    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true" fill="none">
-      <path d="M32 5 14 59M32 5l18 54M22 34h20M18 46h28M25 22h14M20 34l24 12M44 34 20 46" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M23 17h18l-9-12-9 12Z" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function InverterIcon({ size = 54, strokeWidth = 2.2 }: { size?: number; strokeWidth?: number }) {
-  return (
-    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true" fill="none">
-      <rect x="18" y="10" width="28" height="44" rx="5" stroke="currentColor" strokeWidth={strokeWidth} />
-      <rect x="23" y="20" width="18" height="7" rx="1.8" stroke="currentColor" strokeWidth={strokeWidth} />
-      <rect x="23" y="32" width="18" height="7" rx="1.8" stroke="currentColor" strokeWidth={strokeWidth} />
-      <circle cx="27" cy="45" r="1.6" fill="currentColor" />
-      <circle cx="33" cy="45" r="1.6" fill="currentColor" />
-      <circle cx="39" cy="45" r="1.6" fill="currentColor" />
-    </svg>
-  );
-}
-
-function ringOffset(progress: number): number {
-  const circumference = 339.292;
-  const clamped = Math.max(0, Math.min(100, progress));
-  return circumference - (circumference * clamped) / 100;
 }
 
 function SunLogoMark({ size = 56 }: { size?: number }) {
@@ -367,13 +339,9 @@ function FlowNode({
   return (
     <div className={`flow-node ${className}`}>
       <div className={`flow-node__circle ${circleClassName}`}>{icon}{extra}</div>
-      {(label || value || status) && (
-        <div className="flow-node__info">
-          <div className="flow-node__label">{label}</div>
-          <div className="flow-node__value">{value}</div>
-          <div className="flow-node__status">{status}</div>
-        </div>
-      )}
+      <div className="flow-node__label">{label}</div>
+      <div className="flow-node__value">{value}</div>
+      <div className="flow-node__status">{status}</div>
     </div>
   );
 }
@@ -419,10 +387,10 @@ export function DashboardPage() {
     if (realData) {
       return {
         solar_w: Number(realData.solar_w ?? realData.power_w ?? 0),
-        load_w: Number(realData.load_w ?? data?.load_w ?? 0),
-        battery_soc: Number(realData.battery_soc ?? data?.battery_soc ?? 0),
-        grid_w: Number(realData.grid_w ?? data?.grid_w ?? 0),
-        battery_w: Number(realData.battery_w ?? data?.battery_w ?? 0),
+        load_w: Number(realData.load_w ?? 0),
+        battery_soc: Number(realData.battery_soc ?? 0),
+        grid_w: Number(realData.grid_w ?? 0),
+        battery_w: Number(realData.battery_w ?? 0),
         timestamp: realData.last_update ?? null,
       };
     }
@@ -621,7 +589,7 @@ export function DashboardPage() {
             tone="battery"
           />
           <MetricTile
-            icon={<PylonIcon size={46} />}
+            icon={<RadioTower size={44} />}
             title="Grid"
             value={formatKw(gridW)}
             subtitle={getGridLabel(gridW)}
@@ -651,52 +619,13 @@ export function DashboardPage() {
         </div>
 
         <div className="power-flow-visual">
-          <svg className="flow-paths" viewBox="0 0 1000 360" preserveAspectRatio="none" aria-hidden="true">
-            <path className="flow-path flow-path--solar" d="M300 94 C395 94 410 178 500 178" />
-            <path className={`flow-path ${gridImporting ? 'flow-path--grid-import' : 'flow-path--grid-export'}`} d="M700 94 C605 94 590 178 500 178" />
-            <path className={`flow-path ${batteryCharging ? 'flow-path--battery-charge' : 'flow-path--battery-discharge'}`} d="M500 192 C420 210 385 272 300 272" />
-            <path className="flow-path flow-path--home" d="M500 192 C580 210 615 272 700 272" />
-
-            {solarW > 0 && (
-              <circle className="flow-dot flow-dot--solar" r="5">
-                <animateMotion dur={flowSpeed(solarW)} repeatCount="indefinite" path="M300 94 C395 94 410 178 500 178" />
-              </circle>
-            )}
-
-            {Math.abs(gridW) > 0 && (
-              <circle className={gridImporting ? 'flow-dot flow-dot--grid-import' : 'flow-dot flow-dot--grid-export'} r="5">
-                <animateMotion
-                  dur={flowSpeed(gridW)}
-                  repeatCount="indefinite"
-                  path={gridImporting ? 'M700 94 C605 94 590 178 500 178' : 'M500 178 C590 178 605 94 700 94'}
-                />
-              </circle>
-            )}
-
-            {Math.abs(batteryW) > 0 && (
-              <circle className="flow-dot flow-dot--battery" r="5">
-                <animateMotion
-                  dur={flowSpeed(batteryW)}
-                  repeatCount="indefinite"
-                  path={batteryCharging ? 'M500 192 C420 210 385 272 300 272' : 'M300 272 C385 272 420 210 500 192'}
-                />
-              </circle>
-            )}
-
-            {loadW > 0 && (
-              <circle className="flow-dot flow-dot--home" r="5">
-                <animateMotion dur={flowSpeed(loadW)} repeatCount="indefinite" path="M500 192 C580 210 615 272 700 272" />
-              </circle>
-            )}
-          </svg>
-
           <FlowNode
             className="flow-node--solar"
             circleClassName="flow-node__circle--solar"
-            icon={<Sun size={52} strokeWidth={2.15} />}
-            label="Solar"
-            value={formatKw(solarW)}
-            status={`${solarEfficiency}% Efficiency`}
+            icon={<Sun size={58} strokeWidth={2.15} />}
+            label=""
+            value=""
+            status=""
             extra={
               <>
                 <svg className="solar-efficiency-ring" viewBox="0 0 120 120" aria-hidden="true">
@@ -706,7 +635,7 @@ export function DashboardPage() {
                     cx="60"
                     cy="60"
                     r="54"
-                    style={{ strokeDashoffset: ringOffset(solarEfficiency) }}
+                    style={{ '--ring-progress': solarEfficiency } as React.CSSProperties}
                   />
                 </svg>
                 <div className="solar-percent" aria-label={`Solar ${solarEfficiency}% efficiency`}>
@@ -715,35 +644,40 @@ export function DashboardPage() {
               </>
             }
           />
+          <div className="flow-node__side-label flow-node__side-label--solar">
+            <div className="flow-node__label">Solar</div>
+            <div className="flow-node__value">{formatKw(solarW)}</div>
+            <div className="flow-node__status">{solarEfficiency}% Efficiency</div>
+          </div>
 
           <FlowNode
-            className="flow-node--grid"
-            circleClassName={gridImporting ? 'flow-node__circle--grid-import' : 'flow-node__circle--grid-export'}
-            icon={<PylonIcon size={58} strokeWidth={2.15} />}
-            label="Grid"
-            value={formatKw(gridW)}
-            status={getGridLabel(gridW)}
-          />
-
-          <FlowNode
-            className="flow-node--inverter"
-            circleClassName="flow-node__circle--inverter"
-            icon={<InverterIcon size={52} strokeWidth={2.1} />}
-            label="Inverter"
-            value=""
+            className="flow-node--home"
+            circleClassName="flow-node__circle--home"
+            icon={<Home size={60} strokeWidth={2.15} />}
+            label="Home"
+            value={formatKw(loadW)}
             status=""
           />
 
           <FlowNode
             className="flow-node--battery"
             circleClassName="flow-node__circle--battery"
-            icon={getBatteryIcon(batterySoc, 48)}
+            icon={getBatteryIcon(batterySoc, 50)}
             label="Battery"
             value={formatKw(batteryW)}
             status={getBatteryLabel(batteryW)}
             extra={
               <>
-                <div className="battery-fill-meter" style={{ '--battery-fill': `${batterySoc}%` } as React.CSSProperties} />
+                <svg className="battery-soc-ring" viewBox="0 0 120 120" aria-hidden="true">
+                  <circle className="battery-soc-ring__track" cx="60" cy="60" r="54" />
+                  <circle
+                    className="battery-soc-ring__value"
+                    cx="60"
+                    cy="60"
+                    r="54"
+                    style={{ '--ring-progress': batterySoc } as React.CSSProperties}
+                  />
+                </svg>
                 <div className="battery-percent" aria-label={`Battery ${batterySoc}%`}>
                   {batterySoc}%
                 </div>
@@ -752,13 +686,40 @@ export function DashboardPage() {
           />
 
           <FlowNode
-            className="flow-node--home"
-            circleClassName="flow-node__circle--home"
-            icon={<Home size={56} strokeWidth={2.15} />}
-            label="Home"
-            value={formatKw(loadW)}
-            status="Consuming"
+            className="flow-node--grid"
+            circleClassName={gridImporting ? 'flow-node__circle--grid-import' : 'flow-node__circle--grid-export'}
+            icon={<RadioTower size={62} strokeWidth={2.05} />}
+            label="Grid"
+            value={formatKw(gridW)}
+            status={getGridLabel(gridW)}
           />
+
+          {solarW > 0 && (
+            <ArrowRun
+              className="flow-line--solar-home flow-line--solar"
+              direction="down"
+              count={4}
+              speed={flowSpeed(solarW)}
+            />
+          )}
+
+          {Math.abs(batteryW) > 0 && (
+            <ArrowRun
+              className="flow-line--battery-home flow-line--battery"
+              direction={batteryDirection}
+              count={6}
+              speed={flowSpeed(batteryW)}
+            />
+          )}
+
+          {Math.abs(gridW) > 0 && (
+            <ArrowRun
+              className={`flow-line--grid-home ${gridImporting ? 'flow-line--grid-import' : 'flow-line--grid-export'}`}
+              direction={gridDirection}
+              count={6}
+              speed={flowSpeed(gridW)}
+            />
+          )}
         </div>
 
         <div className="flow-legend">
@@ -913,7 +874,7 @@ export function DashboardPage() {
           captionTone="mute"
         />
         <MiniTile
-          icon={<PylonIcon size={28} />}
+          icon={<RadioTower size={26} />}
           tone="grid"
           label="Grid"
           value={formatKw(gridW)}

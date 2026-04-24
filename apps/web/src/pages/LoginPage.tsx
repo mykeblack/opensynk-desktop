@@ -1,108 +1,142 @@
-import { useEffect, useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
+import { login } from '../api/auth';
 import './LoginPage.css';
 
-interface LoginPageProps {
-  onLogin: (username: string, mode: 'demo' | 'live') => void;
-}
+type AppMode = 'demo' | 'live';
 
-export default function LoginPage({ onLogin }: LoginPageProps) {
-  const [username, setUsername] = useState('');
+type Props = {
+  onLogin: (
+    email: string,
+    mode: AppMode,
+    sessionToken: string,
+    keepSignedIn: boolean,
+  ) => void;
+};
+
+export default function LoginPage({ onLogin }: Props) {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [keepSignedIn, setKeepSignedIn] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
-  useEffect(() => {
-    const savedUsername = localStorage.getItem('opensynk_username');
-    if (savedUsername) {
-      setUsername(savedUsername);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await login(email, password, keepSignedIn);
+
+      if (!result.success) {
+        setError(result.message || 'Login failed');
+        return;
+      }
+
+      if (!result.session_token) {
+        setError('Login failed: no session token returned');
+        return;
+      }
+
+      onLogin(
+        result.email!,
+        result.mode!,
+        result.session_token,
+        keepSignedIn,
+      );
+    } catch (err) {
+      console.error('Login error', err);
+      setError('Unable to connect to server');
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
-  setErrorMessage(null);
-
-  const trimmedUsername = username.trim();
-
-  if (!trimmedUsername) {
-    setErrorMessage('Please enter a username.');
-    return;
   }
-
-  // 🔥 save username
-  localStorage.setItem('opensynk_username', trimmedUsername);
-
-  if (trimmedUsername.toLowerCase() === 'demo') {
-    onLogin(trimmedUsername, 'demo');
-    return;
-  }
-
-  if (!password.trim()) {
-    setErrorMessage('Please enter a password.');
-    return;
-  }
-
-  onLogin(trimmedUsername, 'live');
-}
 
   return (
-    <main className="login-page">
+    <div className="login-page">
       <div className="login-card">
-        <div className="login-card__header">
-          <h1>OpenSynk Desktop</h1>
-          <p>Monitor and manage your solar, battery, and home energy system.</p>
-        </div>
+        <h1>OpenSynk</h1>
+        <p className="login-subtitle">
+          Monitor your solar, battery, and energy usage
+        </p>
 
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="login-field">
-            <label htmlFor="username">Username</label>
+            <label>Email</label>
             <input
-              id="username"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter username"
-              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              required
             />
           </div>
 
           <div className="login-field">
-            <label htmlFor="password">Password</label>
+            <label>Password</label>
 
             <div className="login-password-wrapper">
               <input
-                id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                autoComplete="current-password"
+                placeholder="Your Sunsynk password"
+                required
               />
 
               <button
                 type="button"
-                className="login-password-toggle"
+                className="login-show-password"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? 'Hide' : 'Show'}
               </button>
+            </div>
+
+            <div className="login-forgot">
+              <a
+                href="https://www.sunsynk.net/forget"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Forgot your Sunsynk password?
+              </a>
             </div>
           </div>
 
-          {errorMessage && <div className="login-error">{errorMessage}</div>}
+          <div className="login-checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={keepSignedIn}
+                onChange={(e) => setKeepSignedIn(e.target.checked)}
+              />
+              Keep me signed in
+            </label>
+          </div>
 
-          <button className="login-button" type="submit">
-            Sign In
+          {error && <div className="login-error">{error}</div>}
+
+          <button
+            type="submit"
+            className="login-button"
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
-        <div className="login-hint">
-          <strong>Just exploring?</strong> Sign in with username <code>demo</code> to
-          jump into a guided demo with sample energy data.
+        <div className="login-demo">
+          <p>
+            Try demo mode:
+            <br />
+            <strong>demo / demo</strong>
+          </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -94,7 +94,7 @@ export function HistoryPage() {
                   <YAxis />
                   <Tooltip
                     labelFormatter={(label) => formatTimeLabel(label as string | null)}
-                    formatter={(value: number) => formatWatts(value)}
+                    formatter={(value) => formatWatts(Number(value))}
                   />
                   <Legend />
                   <Line type="monotone" dataKey="solar_w" name="Solar" strokeWidth={2} dot={false} />

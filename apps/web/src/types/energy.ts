@@ -4,6 +4,7 @@ export interface LiveSummary {
   battery_soc: number;
   grid_w: number;
   battery_w: number;
+  timestamp?: string | null;
 }
 
 export interface RealLiveSummary {

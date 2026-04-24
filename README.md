@@ -56,3 +56,55 @@ cd apps/desktop
 npm install
 npm run tauri dev
 ```
+
+## Installation
+
+Run PowerShell:
+
+```powershell
+.\install.ps1
+
+The installer asks for your Sunsynk App Key and App Secret and writes them to:
+
+apps/backend/opensynk.config.json
+
+This file is ignored by Git and should not be committed.
+
+## Login
+
+Use your Sunsynk Connect email and password.
+
+OpenSynk does not store your Sunsynk password. On successful login it stores:
+
+email address
+access token
+refresh token
+selected inverter
+tariff preferences
+
+## Demo Mode
+
+Use:
+
+username: demo
+password: demo
+
+Demo mode uses generated sample data.
+
+## Forgotten Sunsynk Password
+
+Reset your Sunsynk password here:
+
+https://www.sunsynk.net/forget
+
+Security Notes
+
+Do not commit:
+
+opensynk.config.json
+.env
+database files
+access tokens
+
+---
+

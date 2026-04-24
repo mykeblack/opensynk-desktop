@@ -1,0 +1,127 @@
+.flow-shell {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: radial-gradient(circle at 50% 25%, rgba(37, 99, 235, 0.16), transparent 34%), #07111f;
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+}
+
+.flow-shell__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.flow-shell__header h2 { margin: 0; color: #f8fafc; font-size: 1.25rem; }
+.flow-shell__header p { margin: 6px 0 0; color: #94a3b8; }
+.flow-help { border: 0; border-radius: 999px; background: rgba(148,163,184,.11); color: #cbd5e1; padding: 9px 14px; }
+
+.flow-stage {
+  position: relative;
+  min-height: 520px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.flow-node { position: absolute; z-index: 2; text-align: center; }
+.flow-node--solar { top: 6%; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 18px; text-align: left; }
+.flow-node--home { top: 48%; left: 50%; transform: translate(-50%, -50%); }
+.flow-node--battery { top: 50%; left: 10%; transform: translateY(-50%); }
+.flow-node--grid { top: 50%; right: 10%; transform: translateY(-50%); }
+
+.node-ring {
+  width: 142px;
+  height: 142px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+  background: conic-gradient(var(--accent) var(--gauge, 360deg), rgba(15, 23, 42, .9) 0);
+  box-shadow: 0 0 34px var(--glow);
+}
+.node-ring::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border-radius: inherit;
+  background: #07111f;
+  border: 1px solid rgba(255,255,255,.10);
+}
+.node-icon { position: relative; z-index: 1; font-size: 54px; color: var(--accent); line-height: 1; }
+.node-gauge-label { position: absolute; bottom: 24px; z-index: 1; color: #e2e8f0; font-weight: 800; }
+.node-ring--solar { --accent: #facc15; --glow: rgba(250, 204, 21, .34); }
+.node-ring--home { --accent: #38bdf8; --glow: rgba(59, 130, 246, .38); }
+.node-ring--battery { --accent: #4ade80; --glow: rgba(34, 197, 94, .34); }
+.node-ring--grid { --accent: #a855f7; --glow: rgba(168, 85, 247, .34); }
+.is-importing .node-ring--grid { --accent: #ef4444; --glow: rgba(239, 68, 68, .35); }
+
+.node-copy { margin-top: 14px; color: #f8fafc; display: grid; gap: 5px; }
+.node-copy strong { text-transform: uppercase; letter-spacing: .05em; font-size: .9rem; }
+.node-copy span { font-size: 1.7rem; font-weight: 800; }
+.node-copy em { font-style: normal; color: #94a3b8; }
+.node-copy--center { text-align: center; }
+.flow-node--battery .node-copy em { color: #4ade80; }
+.flow-node--grid.is-exporting .node-copy em { color: #c084fc; }
+.flow-node--grid.is-importing .node-copy em { color: #f87171; }
+
+.flow-line {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 12px var(--line));
+}
+.flow-line span {
+  width: 16px;
+  height: 16px;
+  border-top: 4px solid var(--line);
+  border-right: 4px solid var(--line);
+  transform: rotate(45deg);
+  animation: flowPulse var(--speed, 1.4s) infinite linear;
+}
+.flow-line span:nth-child(2) { animation-delay: .12s; }
+.flow-line span:nth-child(3) { animation-delay: .24s; }
+.flow-line span:nth-child(4) { animation-delay: .36s; }
+.flow-line.reverse span { transform: rotate(225deg); }
+.flow-line--solar { --line: #facc15; width: 90px; height: 190px; top: 28%; left: calc(50% - 45px); flex-direction: column; }
+.flow-line--solar span { transform: rotate(135deg); }
+.flow-line--battery { --line: #4ade80; width: 250px; top: 50%; left: 25%; }
+.flow-line--grid { --line: #a855f7; width: 260px; top: 50%; right: 25%; }
+.flow-line--grid.is-importing { --line: #ef4444; }
+
+@keyframes flowPulse {
+  0% { opacity: .18; transform: translateX(-8px) rotate(45deg) scale(.88); }
+  50% { opacity: 1; }
+  100% { opacity: .18; transform: translateX(8px) rotate(45deg) scale(1.08); }
+}
+.flow-line.reverse span { animation-name: flowPulseReverse; }
+@keyframes flowPulseReverse {
+  0% { opacity: .18; transform: translateX(8px) rotate(225deg) scale(.88); }
+  50% { opacity: 1; }
+  100% { opacity: .18; transform: translateX(-8px) rotate(225deg) scale(1.08); }
+}
+.flow-line--solar span { animation-name: flowPulseDown; }
+@keyframes flowPulseDown {
+  0% { opacity: .18; transform: translateY(-8px) rotate(135deg) scale(.88); }
+  50% { opacity: 1; }
+  100% { opacity: .18; transform: translateY(8px) rotate(135deg) scale(1.08); }
+}
+
+.flow-legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; color: #cbd5e1; border-top: 1px solid rgba(148,163,184,.12); padding-top: 18px; }
+.flow-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.dot.solar { background: #facc15; } .dot.home { background: #38bdf8; } .dot.battery { background: #4ade80; } .dot.export { background: #a855f7; } .dot.import { background: #ef4444; }
+
+@media (max-width: 780px) {
+  .flow-shell { padding: 18px; border-radius: 22px; }
+  .flow-stage { min-height: 520px; transform: scale(.88); transform-origin: center; }
+  .flow-node--battery { left: 2%; }
+  .flow-node--grid { right: 2%; }
+  .flow-line--battery { left: 19%; width: 220px; }
+  .flow-line--grid { right: 19%; width: 220px; }
+}

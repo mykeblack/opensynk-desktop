@@ -1,39 +1,85 @@
-.app-shell {
-    display: flex;
-    min-height: 100vh;
-    background: #0f172a;
-  }
-  
-  .app-shell__content {
-    flex: 1;
-    overflow-x: hidden;
-  }
+.shell-with-bottom-nav { min-height: 100vh; background: #050b14; }
+.shell-content { padding-bottom: 104px; }
 
-  .sidebar-user {
-  padding: 12px 16px;
-  border-bottom: 1px solid #374151;
+.bottom-nav {
+  position: fixed;
+  left: max(18px, env(safe-area-inset-left));
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr) auto;
+  gap: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(8, 18, 32, 0.86);
+  backdrop-filter: blur(22px);
+  border-radius: 24px;
+  padding: 10px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  max-width: 1180px;
+  margin: 0 auto;
 }
 
-.sidebar-user__name {
-  color: #f9fafb;
-  font-weight: 700;
-}
-
-.sidebar-user__mode {
-  font-size: 0.85rem;
-  color: #9ca3af;
-}
-
-.sidebar-logout {
-  margin-top: auto;
-  padding: 12px 16px;
-  border: none;
+.bottom-nav a,
+.bottom-nav button {
+  min-width: 0;
+  border: 0;
+  text-decoration: none;
+  color: #94a3b8;
   background: transparent;
-  color: #f87171;
+  border-radius: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 10px;
+  font: inherit;
   cursor: pointer;
-  text-align: left;
 }
 
-.sidebar-logout:hover {
-  background: rgba(248, 113, 113, 0.1);
+.bottom-nav__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-nav a.active {
+  color: #fff;
+  background: rgba(37, 99, 235, 0.46);
+}
+
+.bottom-nav a:hover,
+.bottom-nav button:hover {
+  color: #fff;
+  background: rgba(37, 99, 235, 0.2);
+}
+
+.bottom-nav strong {
+  font-weight: 800;
+  font-size: 0.92rem;
+}
+
+.bottom-nav__logout {
+  padding: 13px 14px;
+  color: rgba(239, 68, 68, 0.85);
+}
+.bottom-nav__logout:hover {
+  color: #fff;
+  background: rgba(239, 68, 68, 0.25);
+}
+
+@media (max-width: 720px) {
+  .bottom-nav {
+    grid-template-columns: repeat(5, 1fr) auto;
+  }
+  .bottom-nav a,
+  .bottom-nav button {
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 8px;
+  }
+  .bottom-nav strong {
+    display: none;
+  }
+  .bottom-nav__logout { padding: 10px 12px; }
 }

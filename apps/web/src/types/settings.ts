@@ -4,27 +4,37 @@ export interface SettingsResponse {
   refresh_token: string;
   token_type: string;
   token_expires_in: number | null;
-  app_key: string;
-  app_secret: string;
   username: string;
-  password: string;
   poll_interval_seconds: number;
   selected_site: string;
   verify_ssl: boolean;
   data_mode: 'demo' | 'live';
+  tariff_daily_rate: string;
+  tariff_unit_rate: string;
+  tariff_has_night_rate: boolean;
+  tariff_night_rate: string;
+  tariff_night_start: string;
+  tariff_night_end: string;
+  tariff_investment_cost: string;
+  tariff_export_rate: string;
 }
 
 export interface SaveSettingsPayload {
   api_base_url: string;
   access_token: string;
-  app_key: string;
-  app_secret: string;
   username: string;
-  password: string;
   poll_interval_seconds: number;
   selected_site: string;
   verify_ssl: boolean;
   data_mode: 'demo' | 'live';
+  tariff_daily_rate: string;
+  tariff_unit_rate: string;
+  tariff_has_night_rate: boolean;
+  tariff_night_rate: string;
+  tariff_night_start: string;
+  tariff_night_end: string;
+  tariff_investment_cost: string;
+  tariff_export_rate: string;
 }
 
 export interface SaveSettingsResponse {

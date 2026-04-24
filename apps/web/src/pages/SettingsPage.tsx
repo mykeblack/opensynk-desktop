@@ -1,171 +1,100 @@
 import { useEffect, useState } from 'react';
-import { getSettings, saveSettings, testConnection } from '../api/settings';
-import { getInverters, type InverterInfo } from '../api/inverters';
+import { getSettings, saveSettings } from '../api/settings';
+import { getInverters } from '../api/inverters';
 import './SettingsPage.css';
+
+type SettingsPayload = {
+  api_base_url: string;
+  username: string;
+  poll_interval_seconds: number;
+  selected_site: string;
+  verify_ssl: boolean;
+};
+
+type Inverter = {
+  id: number;
+  sn: string;
+  alias: string;
+  plant?: {
+    name?: string;
+  };
+};
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
-  const [testingConnection, setTestingConnection] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [inverters, setInverters] = useState<Inverter[]>([]);
 
-  const [apiBaseUrl, setApiBaseUrl] = useState('https://openapi.sunsynk.net');
-  const [accessToken, setAccessToken] = useState('');
-  const [appKey, setAppKey] = useState('');
-  const [appSecret, setAppSecret] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [pollInterval, setPollInterval] = useState(60);
-  const [selectedSite, setSelectedSite] = useState('');
-  const [verifySsl, setVerifySsl] = useState(true);
-
-  const [tokenType, setTokenType] = useState('');
-  const [tokenExpiresIn, setTokenExpiresIn] = useState<number | null>(null);
-
-  const [inverters, setInverters] = useState<InverterInfo[]>([]);
+  const [settings, setSettings] = useState<SettingsPayload>({
+    api_base_url: '',
+    username: '',
+    poll_interval_seconds: 60,
+    selected_site: '',
+    verify_ssl: false,
+  });
 
   useEffect(() => {
-    async function loadSettings() {
+    async function load() {
       try {
         setLoading(true);
-        setErrorMessage(null);
+        setError(null);
 
-        const settings = await getSettings();
+        const [settingsData, inverterData] = await Promise.all([
+          getSettings(),
+          getInverters().catch(() => []),
+        ]);
 
-        setApiBaseUrl(settings.api_base_url || 'https://openapi.sunsynk.net');
-        setAccessToken(settings.access_token || '');
-        setAppKey(settings.app_key || '');
-        setAppSecret(settings.app_secret || '');
-        setUsername(settings.username || '');
-        setPassword(settings.password || '');
-        setPollInterval(settings.poll_interval_seconds || 60);
-        setSelectedSite(settings.selected_site || '');
-        setVerifySsl(settings.verify_ssl ?? true);
-        setTokenType(settings.token_type || '');
-        setTokenExpiresIn(settings.token_expires_in ?? null);
+        setSettings({
+          api_base_url: settingsData.api_base_url,
+          username: settingsData.username,
+          poll_interval_seconds: settingsData.poll_interval_seconds,
+          selected_site: settingsData.selected_site || '',
+          verify_ssl: settingsData.verify_ssl,
+        });
 
-        try {
-          const loadedInverters = await getInverters();
-          setInverters(loadedInverters);
-
-          if (
-            loadedInverters.length > 0 &&
-            !loadedInverters.find((inv) => inv.sn === selectedSite)
-          ) {
-            setSelectedSite(loadedInverters[0].sn);
-          }
-        } catch (err) {
-          console.error('Failed to load inverters', err);
-          setErrorMessage(err instanceof Error ? err.message : 'Failed to load inverters');
-          setInverters([]);
-        }
+        setInverters(inverterData || []);
       } catch (err) {
-        console.error('Failed to load settings', err);
-        setErrorMessage('Failed to load settings');
+        console.error(err);
+        setError('Failed to load settings');
       } finally {
         setLoading(false);
       }
     }
 
-    loadSettings();
+    load();
   }, []);
+
+  function update<K extends keyof SettingsPayload>(
+    key: K,
+    value: SettingsPayload[K]
+  ) {
+    setSettings((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }
 
   async function handleSave() {
     try {
       setSaving(true);
-      setSuccessMessage(null);
-      setErrorMessage(null);
+      setError(null);
+      setSuccess(null);
 
-      const response = await saveSettings({
-        api_base_url: apiBaseUrl,
-        access_token: accessToken,
-        app_key: appKey,
-        app_secret: appSecret,
-        username,
-        password,
-        poll_interval_seconds: pollInterval,
-        selected_site: selectedSite,
-        verify_ssl: verifySsl,
-        data_mode: username.trim().toLowerCase() === 'demo' ? 'demo' : 'live',
-      });
+      const result = await saveSettings(settings);
 
-      if (response.success) {
-        setSuccessMessage(response.message || 'Settings saved successfully');
+      if (result.success) {
+        setSuccess('Settings saved');
       } else {
-        setErrorMessage(response.message || 'Failed to save settings');
+        setError(result.message || 'Failed to save settings');
       }
     } catch (err) {
-      console.error('Failed to save settings', err);
-      setErrorMessage('Failed to save settings');
+      console.error(err);
+      setError('Failed to save settings');
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleTestConnection() {
-    try {
-      setTestingConnection(true);
-      setSuccessMessage(null);
-      setErrorMessage(null);
-
-      const response = await testConnection({
-        api_base_url: apiBaseUrl,
-        access_token: accessToken,
-        app_key: appKey,
-        app_secret: appSecret,
-        username,
-        password,
-        verify_ssl: verifySsl,
-      });
-
-      if (response.success) {
-        setSuccessMessage(
-          response.expires_in
-            ? `Access token refreshed successfully. Expires in ${response.expires_in} seconds.`
-            : 'Access token refreshed successfully.',
-        );
-
-        if (response.token_type) {
-          setTokenType(response.token_type);
-        }
-
-        if (response.expires_in !== undefined) {
-          setTokenExpiresIn(response.expires_in);
-        }
-
-        if (response.access_token) {
-          setAccessToken(response.access_token);
-        }
-
-        try {
-          const loadedInverters = await getInverters();
-          setInverters(loadedInverters);
-
-          if (
-            loadedInverters.length > 0 &&
-            !loadedInverters.find((inv) => inv.sn === selectedSite)
-          ) {
-            setSelectedSite(loadedInverters[0].sn);
-          }
-        } catch (err) {
-          console.error('Failed to load inverters', err);
-          setErrorMessage(err instanceof Error ? err.message : 'Failed to load inverters after refresh');
-          setInverters([]);
-        }
-      } else {
-        setErrorMessage(
-          response.status_code
-            ? `Token request failed with status ${response.status_code}`
-            : response.message || 'Failed to retrieve access token',
-        );
-      }
-    } catch (err) {
-      console.error('Failed to get access token', err);
-      setErrorMessage('Failed to retrieve access token');
-    } finally {
-      setTestingConnection(false);
     }
   }
 
@@ -174,181 +103,119 @@ export default function SettingsPage() {
       <header className="dashboard-page__header">
         <div>
           <h1>Settings</h1>
-          <p>Configure Sunsynk API access and application preferences</p>
+          <p>Configure your inverter and system behaviour</p>
         </div>
+
+        <button
+          className="refresh-button"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? 'Saving...' : 'Save Settings'}
+        </button>
       </header>
 
-      {loading && <div className="dashboard-state">Loading settings...</div>}
+      {loading && (
+        <div className="dashboard-state">Loading settings...</div>
+      )}
+
+      {error && (
+        <div className="dashboard-state dashboard-state--error">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="dashboard-state" style={{ color: '#86efac' }}>
+          {success}
+        </div>
+      )}
 
       {!loading && (
-        <div className="settings-layout">
-          {successMessage && (
-            <div className="settings-status settings-status--success">
-              {successMessage}
-            </div>
-          )}
-
-          {errorMessage && (
-            <div className="settings-status settings-status--error">
-              {errorMessage}
-            </div>
-          )}
-
-          {tokenType && (
-            <div className="settings-status settings-status--success">
-              Token type: {tokenType}
-              {tokenExpiresIn ? ` • Expires in ${tokenExpiresIn} seconds` : ''}
-            </div>
-          )}
-
-          <section className="settings-panel">
-            <div className="settings-panel__header">
-              <h2>API Configuration</h2>
-              <p>Manage your Sunsynk API connection settings.</p>
+        <section className="tariffs-layout">
+          {/* ACCOUNT */}
+          <section className="tariff-panel">
+            <div className="tariff-panel__header">
+              <h2>Account</h2>
+              <p>Your logged-in Sunsynk account</p>
             </div>
 
-            <div className="settings-form">
-              <div className="settings-field">
-                <label htmlFor="apiBaseUrl">API Base URL</label>
-                <input
-                  id="apiBaseUrl"
-                  type="text"
-                  value={apiBaseUrl}
-                  onChange={(e) => setApiBaseUrl(e.target.value)}
-                />
+            <div className="tariff-summary">
+              <div>
+                <span>Email</span>
+                <strong>{settings.username}</strong>
               </div>
+            </div>
+          </section>
 
-              <div className="settings-field">
-                <label htmlFor="appKey">App Key</label>
-                <input
-                  id="appKey"
-                  type="text"
-                  value={appKey}
-                  onChange={(e) => setAppKey(e.target.value)}
-                />
+          {/* INVERTER */}
+          <section className="tariff-panel">
+            <div className="tariff-panel__header">
+              <h2>Inverter</h2>
+              <p>Select which inverter to monitor</p>
+            </div>
+
+            <div className="tariff-form">
+              <div className="tariff-field">
+                <label>Select Inverter</label>
+
+                <select
+                  value={settings.selected_site}
+                  onChange={(e) =>
+                    update('selected_site', e.target.value)
+                  }
+                >
+                  <option value="">-- Select inverter --</option>
+
+                  {inverters.map((inv) => (
+                    <option key={inv.id} value={inv.sn}>
+                      {inv.alias} ({inv.sn})
+                      {inv.plant?.name ? ` - ${inv.plant.name}` : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
+            </div>
+          </section>
 
-              <div className="settings-field">
-                <label htmlFor="appSecret">App Secret</label>
-                <input
-                  id="appSecret"
-                  type="password"
-                  value={appSecret}
-                  onChange={(e) => setAppSecret(e.target.value)}
-                />
-              </div>
+          {/* SYSTEM */}
+          <section className="tariff-panel">
+            <div className="tariff-panel__header">
+              <h2>System</h2>
+              <p>Polling and connection settings</p>
+            </div>
 
-              <div className="settings-field">
-                <label htmlFor="username">Username</label>
+            <div className="tariff-form">
+              <div className="tariff-field">
+                <label>Poll Interval (seconds)</label>
                 <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </div>
-
-              <div className="settings-field">
-                <label htmlFor="password">Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-
-              <div className="settings-field">
-                <label htmlFor="pollInterval">Poll Interval (seconds)</label>
-                <input
-                  id="pollInterval"
                   type="number"
-                  min={5}
-                  max={3600}
-                  value={pollInterval}
-                  onChange={(e) => setPollInterval(Number(e.target.value))}
+                  min="5"
+                  value={settings.poll_interval_seconds}
+                  onChange={(e) =>
+                    update(
+                      'poll_interval_seconds',
+                      Number(e.target.value)
+                    )
+                  }
                 />
               </div>
 
-              <div className="settings-checkbox">
-                <label className="settings-checkbox__label">
+              <div className="tariff-checkbox">
+                <label>
                   <input
                     type="checkbox"
-                    checked={verifySsl}
-                    onChange={(e) => setVerifySsl(e.target.checked)}
+                    checked={settings.verify_ssl}
+                    onChange={(e) =>
+                      update('verify_ssl', e.target.checked)
+                    }
                   />
                   Verify SSL certificates
                 </label>
-
-                {!verifySsl && (
-                  <div className="settings-warning">
-                    Warning: certificate validation is disabled. This is insecure
-                    and should only be used temporarily for local testing.
-                  </div>
-                )}
               </div>
             </div>
           </section>
-
-          <section className="settings-panel">
-            <div className="settings-field">
-              <label htmlFor="selectedSite">Selected Inverter</label>
-              <select
-                id="selectedSite"
-                value={selectedSite}
-                onChange={(e) => setSelectedSite(e.target.value)}
-              >
-                {inverters.length === 0 && (
-                  <option value="">No inverters loaded</option>
-                )}
-
-                {inverters.map((inv) => (
-                  <option key={inv.sn} value={inv.sn}>
-                    {inv.alias || inv.sn} — {inv.plant?.name || 'Unknown Plant'}
-                  </option>
-                ))}
-              </select>
-              {selectedSite && (
-                <div className="settings-status settings-status--success">
-                  {(() => {
-                    const selected = inverters.find((inv) => inv.sn === selectedSite);
-                    if (!selected) return 'Selected inverter loaded';
-
-                    return `SN: ${selected.sn} • Power: ${selected.pac}W • Today: ${selected.etoday}kWh`;
-                  })()}
-                </div>
-              )}
-            </div>
-
-          </section>
-
-          <section className="settings-panel">
-            <div className="settings-panel__header">
-              <h2>Actions</h2>
-              <p>Retrieve and store a valid Sunsynk access token, then save your configuration.</p>
-            </div>
-
-            <div className="settings-actions">
-              <button
-                className="settings-button settings-button--secondary"
-                onClick={handleSave}
-                disabled={saving}
-              >
-                {saving ? 'Saving...' : 'Save Settings'}
-              </button>
-
-              <button
-                className="settings-button settings-button--primary"
-                onClick={handleTestConnection}
-                disabled={testingConnection}
-              >
-                {testingConnection
-                  ? 'Refreshing Token...'
-                  : 'Get / Refresh Access Token'}
-              </button>
-            </div>
-          </section>
-        </div>
+        </section>
       )}
     </main>
   );

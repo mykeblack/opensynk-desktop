@@ -154,9 +154,10 @@ class SunsynkClient:
                 verify=self.verify_ssl,
             )
 
-            print("inverters url =", url)
-            print("inverters status =", response.status_code)
-            print("inverters body =", response.text[:2000])
+            #print("inverters url =", url)
+            #print("inverters status =", response.status_code)
+            #print("inverters body =", response.text[:2000])
+            print("polling data for inverter, status = ",response.status_code)
 
             try:
                 response_json = response.json()
@@ -303,9 +304,9 @@ class SunsynkClient:
                 verify=self.verify_ssl,
             )
 
-            print("probe url =", url)
-            print("status =", response.status_code)
-            print("body =", response.text[:1500])
+            #print("probe url =", url)
+            print("probe status =", response.status_code)
+            #print("body =", response.text[:1500])
 
             try:
                 json_data = response.json()
@@ -407,3 +408,33 @@ class SunsynkClient:
             "battery_w": battery_w,
             "grid_w": grid_w,
         }
+    
+    def refresh_access_token(self, refresh_token: str):
+        url_path = "/oauth/token"
+
+        payload = {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+        }
+
+        try:
+            response = self.session.post(
+                f"{self.base_url}{url_path}",
+                json=payload,
+                timeout=10,
+            )
+
+            json_data = response.json()
+
+            return {
+                "success": response.status_code == 200 and json_data.get("success"),
+                "status_code": response.status_code,
+                "response_json": json_data,
+                "response_text": response.text[:1000],
+            }
+
+        except Exception as ex:
+            return {
+                "success": False,
+                "message": str(ex),
+            }

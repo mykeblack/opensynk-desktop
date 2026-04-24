@@ -1,0 +1,85 @@
+.tariffs-layout {
+  display: grid;
+  gap: 20px;
+}
+
+.tariff-panel {
+  border-radius: 18px;
+  background: #111827;
+  border: 1px solid #1f2937;
+  padding: 20px;
+}
+
+.tariff-panel__header h2 {
+  margin: 0 0 6px;
+  color: #f8fafc;
+  font-size: 1.1rem;
+}
+
+.tariff-panel__header p {
+  margin: 0 0 18px;
+  color: #94a3b8;
+}
+
+.tariff-form {
+  display: grid;
+  gap: 16px;
+}
+
+.tariff-field {
+  display: grid;
+  gap: 8px;
+}
+
+.tariff-field label {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.tariff-field input {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  color: #f8fafc;
+  padding: 12px 14px;
+}
+
+.tariff-time-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.tariff-checkbox__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.tariff-summary {
+  display: grid;
+  gap: 12px;
+}
+
+.tariff-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid #1f2937;
+}
+
+.tariff-summary div:last-child {
+  border-bottom: none;
+}
+
+.tariff-summary span {
+  color: #94a3b8;
+}
+
+.tariff-summary strong {
+  color: #f8fafc;
+}

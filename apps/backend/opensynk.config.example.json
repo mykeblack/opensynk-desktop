@@ -1,0 +1,5 @@
+{
+  "sunsynk_app_key": "YOUR_APP_KEY",
+  "sunsynk_app_secret": "YOUR_APP_SECRET",
+  "jwt_secret": "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET"
+}

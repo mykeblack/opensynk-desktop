@@ -1,19 +1,32 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.db.models import Settings
 from app.db.database import SessionLocal
+from app.api.deps import get_current_settings
 from app.db.models import LiveSample
 
 router = APIRouter(prefix="/api/history", tags=["history"])
 
 
 @router.get("/power")
-def history_power():
+def history_power(settings: Settings = Depends(get_current_settings)):
+    if not settings:
+        return {"error": "User not found"}
+    
+    if not settings.access_token:
+        return {"error": "No access token configured"}
+    
+    if not settings.selected_site:
+        return {"error": "No inverter selected"}
+    
     db: Session = SessionLocal()
 
     try:
         samples = (
             db.query(LiveSample)
+            .filter(LiveSample.username == settings.username)
+            .filter(LiveSample.selected_site == settings.selected_site)
             .order_by(LiveSample.timestamp.asc())
             .limit(500)
             .all()
