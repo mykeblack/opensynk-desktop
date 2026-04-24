@@ -651,41 +651,58 @@ export function DashboardPage() {
         </div>
 
         <div className="power-flow-visual">
-          <svg className="flow-paths" viewBox="0 0 1000 360" preserveAspectRatio="none" aria-hidden="true">
-            <path className="flow-path flow-path--solar" d="M300 94 C395 94 410 178 500 178" />
-            <path className={`flow-path ${gridImporting ? 'flow-path--grid-import' : 'flow-path--grid-export'}`} d="M700 94 C605 94 590 178 500 178" />
-            <path className={`flow-path ${batteryCharging ? 'flow-path--battery-charge' : 'flow-path--battery-discharge'}`} d="M500 192 C420 210 385 272 300 272" />
-            <path className="flow-path flow-path--home" d="M500 192 C580 210 615 272 700 272" />
+          <svg className="flow-paths" viewBox="0 0 1000 390" preserveAspectRatio="none" aria-hidden="true">
+            {/* Straight elbow paths: each connection uses two straight lines with one bend. */}
+            <path
+              className="flow-path flow-path--solar"
+              d="M360 100 H470 V170"
+              style={{ '--flow-speed': flowSpeed(solarW) } as React.CSSProperties}
+            />
+            <path
+              className={`flow-path ${gridImporting ? 'flow-path--grid-import' : 'flow-path--grid-export'}`}
+              d="M640 100 H530 V170"
+              style={{ '--flow-speed': flowSpeed(gridW) } as React.CSSProperties}
+            />
+            <path
+              className={`flow-path ${batteryCharging ? 'flow-path--battery-charge' : 'flow-path--battery-discharge'}`}
+              d="M470 230 V300 H360"
+              style={{ '--flow-speed': flowSpeed(batteryW) } as React.CSSProperties}
+            />
+            <path
+              className="flow-path flow-path--home"
+              d="M530 230 V300 H640"
+              style={{ '--flow-speed': flowSpeed(loadW) } as React.CSSProperties}
+            />
 
             {solarW > 0 && (
-              <circle className="flow-dot flow-dot--solar" r="5">
-                <animateMotion dur={flowSpeed(solarW)} repeatCount="indefinite" path="M300 94 C395 94 410 178 500 178" />
+              <circle className="flow-dot flow-dot--solar" r="6">
+                <animateMotion dur={flowSpeed(solarW)} repeatCount="indefinite" path="M360 100 H470 V170" />
               </circle>
             )}
 
             {Math.abs(gridW) > 0 && (
-              <circle className={gridImporting ? 'flow-dot flow-dot--grid-import' : 'flow-dot flow-dot--grid-export'} r="5">
+              <circle className={gridImporting ? 'flow-dot flow-dot--grid-import' : 'flow-dot flow-dot--grid-export'} r="6">
                 <animateMotion
                   dur={flowSpeed(gridW)}
                   repeatCount="indefinite"
-                  path={gridImporting ? 'M700 94 C605 94 590 178 500 178' : 'M500 178 C590 178 605 94 700 94'}
+                  path={gridImporting ? 'M640 100 H530 V170' : 'M530 170 V100 H640'}
                 />
               </circle>
             )}
 
             {Math.abs(batteryW) > 0 && (
-              <circle className="flow-dot flow-dot--battery" r="5">
+              <circle className="flow-dot flow-dot--battery" r="6">
                 <animateMotion
                   dur={flowSpeed(batteryW)}
                   repeatCount="indefinite"
-                  path={batteryCharging ? 'M500 192 C420 210 385 272 300 272' : 'M300 272 C385 272 420 210 500 192'}
+                  path={batteryCharging ? 'M470 230 V300 H360' : 'M360 300 H470 V230'}
                 />
               </circle>
             )}
 
             {loadW > 0 && (
-              <circle className="flow-dot flow-dot--home" r="5">
-                <animateMotion dur={flowSpeed(loadW)} repeatCount="indefinite" path="M500 192 C580 210 615 272 700 272" />
+              <circle className="flow-dot flow-dot--home" r="6">
+                <animateMotion dur={flowSpeed(loadW)} repeatCount="indefinite" path="M530 230 V300 H640" />
               </circle>
             )}
           </svg>
@@ -743,7 +760,16 @@ export function DashboardPage() {
             status={getBatteryLabel(batteryW)}
             extra={
               <>
-                <div className="battery-fill-meter" style={{ '--battery-fill': `${batterySoc}%` } as React.CSSProperties} />
+                <svg className="battery-soc-ring" viewBox="0 0 120 120" aria-hidden="true">
+                  <circle className="battery-soc-ring__track" cx="60" cy="60" r="54" />
+                  <circle
+                    className="battery-soc-ring__value"
+                    cx="60"
+                    cy="60"
+                    r="54"
+                    style={{ strokeDashoffset: ringOffset(batterySoc) }}
+                  />
+                </svg>
                 <div className="battery-percent" aria-label={`Battery ${batterySoc}%`}>
                   {batterySoc}%
                 </div>

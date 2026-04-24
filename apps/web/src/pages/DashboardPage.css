@@ -1027,3 +1027,363 @@
 
   .flow-node__info { min-width: 95px; }
 }
+
+/* ---------- Stable straight-elbow inverter flow layout ----------
+   These overrides replace the earlier curved SVG paths. The visual now uses
+   a fixed 1000x390 SVG coordinate system, so the paths and nodes keep their
+   alignment at any desktop width. */
+.power-flow-card {
+  padding: 18px 24px 14px;
+}
+
+.power-flow-visual {
+  position: relative;
+  height: 390px;
+  min-height: 390px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.flow-paths {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 390px;
+  z-index: 1;
+  overflow: visible;
+}
+
+.flow-path {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 14 20;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 13px currentColor);
+  animation: flowDash var(--flow-speed, 1.2s) linear infinite;
+}
+
+@keyframes flowDash {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -68; }
+}
+
+.flow-dot {
+  filter: drop-shadow(0 0 14px currentColor);
+}
+
+/* Desktop node geometry: these values are paired with the SVG viewBox:
+   Solar center   = 30% / y 100
+   Grid center    = 70% / y 100
+   Inverter center= 50% / y 200
+   Battery center = 30% / y 300
+   Home center    = 70% / y 300 */
+.flow-node {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  text-align: left;
+}
+
+.flow-node__circle {
+  width: 112px;
+  height: 112px;
+  flex: 0 0 112px;
+  border-width: 4px;
+  box-shadow: 0 0 32px color-mix(in srgb, currentColor 24%, transparent);
+}
+
+.flow-node__info {
+  min-width: 122px;
+  display: grid;
+  gap: 3px;
+}
+
+.flow-node__label {
+  margin-top: 0;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e5edf8;
+}
+
+.flow-node__value {
+  margin-top: 0;
+  font-size: clamp(1.32rem, 1.65vw, 1.65rem);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+.flow-node__status {
+  min-height: 0;
+  margin-top: 0;
+  font-size: 0.84rem;
+  font-weight: 750;
+  color: currentColor;
+}
+
+/* Left-side nodes: text on the left, circle on the right. */
+.flow-node--solar,
+.flow-node--battery {
+  left: calc(30% - 196px);
+  transform: none;
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.flow-node--solar { top: 44px; }
+.flow-node--battery { top: 244px; }
+
+.flow-node--solar .flow-node__info,
+.flow-node--battery .flow-node__info {
+  text-align: right;
+}
+
+/* Right-side nodes: circle on the left, text on the right. */
+.flow-node--grid,
+.flow-node--home {
+  left: calc(70% - 56px);
+  right: auto;
+  transform: none;
+  flex-direction: row;
+  text-align: left;
+}
+
+.flow-node--grid { top: 44px; }
+.flow-node--home { top: 244px; }
+
+/* Center inverter: circle above label, centered on 50% / y 200. */
+.flow-node--inverter {
+  top: 144px;
+  left: calc(50% - 56px);
+  transform: none;
+  width: 112px;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+
+.flow-node--inverter .flow-node__info {
+  min-width: unset;
+  text-align: center;
+}
+
+.flow-node__circle--inverter {
+  color: #fb923c;
+}
+
+/* Ring sizing for 112px node circles */
+.solar-efficiency-ring,
+.battery-soc-ring {
+  inset: -7px;
+  width: 126px;
+  height: 126px;
+}
+
+.solar-percent,
+.battery-percent {
+  bottom: 17px;
+  font-size: 0.82rem;
+}
+
+.battery-fill-meter { display: none; }
+.flow-line { display: none; }
+.flow-node__side-label { display: none; }
+
+.flow-legend {
+  padding-top: 0;
+  margin-top: -4px;
+}
+
+@media (max-width: 980px) {
+  .power-flow-visual {
+    height: 560px;
+    min-height: 560px;
+  }
+
+  .flow-paths { display: none; }
+
+  .flow-node {
+    transform: none;
+  }
+
+  .flow-node--solar {
+    top: 10px;
+    left: 20px;
+    flex-direction: row-reverse;
+  }
+
+  .flow-node--grid {
+    top: 10px;
+    left: auto;
+    right: 20px;
+  }
+
+  .flow-node--inverter {
+    top: 205px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .flow-node--battery {
+    top: 395px;
+    left: 20px;
+    flex-direction: row-reverse;
+  }
+
+  .flow-node--home {
+    top: 395px;
+    left: auto;
+    right: 20px;
+  }
+
+  .flow-node__circle {
+    width: 96px;
+    height: 96px;
+    flex-basis: 96px;
+  }
+
+  .flow-node__info {
+    min-width: 95px;
+  }
+}
+
+
+/* ---------- Ring refinement update ----------
+   Make the solar/battery node borders subtle, and let the SVG rings carry
+   the actual efficiency/SOC progress. This avoids full-colour rings at 0%. */
+.flow-node__circle--solar,
+.flow-node__circle--battery {
+  border-color: rgba(148, 163, 184, 0.2);
+  border-width: 2px;
+}
+
+.flow-node__circle--solar {
+  box-shadow: 0 0 30px rgba(250, 204, 21, 0.2);
+}
+
+.flow-node__circle--battery {
+  box-shadow: 0 0 30px rgba(46, 230, 107, 0.2);
+}
+
+.solar-efficiency-ring,
+.battery-soc-ring {
+  inset: -7px;
+  width: 126px;
+  height: 126px;
+}
+
+.solar-efficiency-ring__track,
+.battery-soc-ring__track {
+  stroke-width: 2.4;
+  stroke: rgba(148, 163, 184, 0.2);
+}
+
+.solar-efficiency-ring__value,
+.battery-soc-ring__value {
+  stroke-width: 5.2;
+  stroke-linecap: round;
+  stroke-dasharray: 339.292;
+  transition: stroke-dashoffset 420ms ease;
+}
+
+.solar-efficiency-ring__value {
+  stroke: var(--solar);
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.52));
+}
+
+.battery-soc-ring__value {
+  stroke: var(--battery);
+  filter: drop-shadow(0 0 8px rgba(46, 230, 107, 0.52));
+}
+
+.solar-percent,
+.battery-percent {
+  bottom: 16px;
+  font-size: 0.8rem;
+}
+
+.battery-fill-meter {
+  display: none;
+}
+
+/* ---------- Final square-elbow flow override ----------
+   Four paths use only horizontal/vertical segments and terminate at separate
+   inverter ports so they do not overlap at the centre. */
+.flow-path {
+  stroke-linejoin: miter;
+  stroke-linecap: round;
+  stroke-width: 6;
+  opacity: 0.62;
+}
+
+.flow-path--solar {
+  stroke: var(--solar);
+  color: var(--solar);
+}
+
+.flow-path--grid-import {
+  stroke: var(--grid-import);
+  color: var(--grid-import);
+}
+
+.flow-path--grid-export {
+  stroke: var(--grid-export);
+  color: var(--grid-export);
+}
+
+.flow-path--battery-charge,
+.flow-path--battery-discharge {
+  stroke: var(--battery);
+  color: var(--battery);
+}
+
+.flow-path--home {
+  stroke: var(--home);
+  color: var(--home);
+}
+
+/* Keep nodes locked to the SVG coordinate system. */
+.flow-node--solar {
+  top: 44px;
+  left: calc(30% - 196px);
+  transform: none;
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.flow-node--grid {
+  top: 44px;
+  left: calc(70% - 56px);
+  right: auto;
+  transform: none;
+  flex-direction: row;
+  text-align: left;
+}
+
+.flow-node--inverter {
+  top: 144px;
+  left: calc(50% - 56px);
+  transform: none;
+}
+
+.flow-node--battery {
+  top: 244px;
+  left: calc(30% - 196px);
+  transform: none;
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.flow-node--home {
+  top: 244px;
+  left: calc(70% - 56px);
+  right: auto;
+  transform: none;
+  flex-direction: row;
+  text-align: left;
+}
