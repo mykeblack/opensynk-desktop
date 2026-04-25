@@ -1,0 +1,352 @@
+/* AppShell.css
+   Full-width premium Energy OS footer navigation.
+   Put at: src/components/layout/AppShell.css
+
+   This version:
+   - stretches the footer design across the full page width
+   - removes side gaps
+   - adds the blue selected glow
+   - keeps footer visible in console mode
+   - uses icons + labels on desktop/tablet
+   - uses icons only on mobile/small LCD screens
+*/
+
+body{
+  margin:0px;
+  padding:0px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(95, 41, 137, 0.28), transparent 32%),
+    radial-gradient(circle at 10% 0%, rgba(29, 78, 216, 0.22), transparent 30%),
+    linear-gradient(180deg, #070f1f 0%, #050b14 45%, #030812 100%);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.app-shell__content {
+  min-height: 100vh;
+  padding-bottom: 122px;
+}
+
+/* ------------------------------------------------------------------
+   Premium full-width footer nav
+   ------------------------------------------------------------------ */
+
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+
+  width: 100vw;
+  padding: 0;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(2, 6, 23, 0) 0%,
+      rgba(2, 6, 23, 0.72) 22%,
+      rgba(2, 6, 23, 0.98) 100%
+    );
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  pointer-events: none;
+}
+
+/* top hairline glow */
+.bottom-nav::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(59, 130, 246, 0.55),
+      rgba(148, 163, 184, 0.22),
+      rgba(168, 85, 247, 0.35)
+    );
+  box-shadow: 0 0 18px rgba(59, 130, 246, 0.34);
+}
+
+/* The actual nav surface now spans edge-to-edge */
+.bottom-nav__inner {
+  width: 100%;
+  min-height: 92px;
+
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+
+  border-top: 1px solid rgba(148, 163, 184, 0.24);
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0;
+
+  background:
+    radial-gradient(circle at 6% 0%, rgba(59, 130, 246, 0.24), transparent 26%),
+    radial-gradient(circle at 96% 0%, rgba(124, 58, 237, 0.22), transparent 30%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(3, 7, 18, 0.97));
+
+  box-shadow:
+    0 -22px 55px rgba(15, 23, 42, 0.42),
+    0 -1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 1px 0 rgba(255, 255, 255, 0.05) inset;
+
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+/* If console mode adds Exit as a 7th item */
+body.console-mode .bottom-nav__inner {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+/* Console mode must NOT hide the footer */
+body.console-mode .bottom-nav {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+body.console-mode .app-shell__content {
+  padding-bottom: 122px;
+}
+
+/* Hide old separate console header if it is still mounted */
+.console-header,
+body.console-mode .console-header {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------------
+   Nav items
+   ------------------------------------------------------------------ */
+
+.bottom-nav__item {
+  position: relative;
+
+  min-height: 92px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  background: transparent;
+
+  color: rgba(203, 213, 225, 0.72);
+  text-decoration: none;
+
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+/* vertical separators */
+.bottom-nav__item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 28%;
+  bottom: 28%;
+  width: 1px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(203, 213, 225, 0.3),
+      transparent
+    );
+}
+
+.bottom-nav__item:hover {
+  color: #f8fafc;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(148, 163, 184, 0.045),
+      rgba(148, 163, 184, 0.015)
+    );
+}
+
+.bottom-nav__icon {
+  width: 24px;
+  height: 24px;
+  opacity: 0.78;
+  color: currentColor;
+
+  transition:
+    opacity 180ms ease,
+    color 180ms ease,
+    filter 180ms ease,
+    transform 180ms ease;
+}
+
+.bottom-nav__label {
+  line-height: 1;
+}
+
+/* selected state: no pill, just icon glow + blue underline */
+.bottom-nav__item.active {
+  color: #f8fafc;
+}
+
+.bottom-nav__item.active .bottom-nav__icon {
+  color: #3b82f6;
+  opacity: 1;
+  filter:
+    drop-shadow(0 0 10px rgba(59, 130, 246, 0.85))
+    drop-shadow(0 0 22px rgba(59, 130, 246, 0.45));
+  transform: translateY(-2px);
+}
+
+.bottom-nav__item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+
+  width: 54px;
+  height: 6px;
+  border-radius: 999px;
+
+  transform: translateX(-50%);
+
+  background:
+    linear-gradient(90deg, #2563eb, #60a5fa);
+
+  box-shadow:
+    0 0 12px rgba(96, 165, 250, 0.95),
+    0 0 28px rgba(59, 130, 246, 0.58);
+}
+
+/* Console exit nav item */
+.bottom-nav__item--exit-console {
+  color: rgba(252, 165, 165, 0.86);
+}
+
+.bottom-nav__item--exit-console .bottom-nav__icon {
+  color: #f87171;
+}
+
+.bottom-nav__item--exit-console:hover {
+  color: #fecaca;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(127, 29, 29, 0.2),
+      rgba(127, 29, 29, 0.05)
+    );
+}
+
+/* ------------------------------------------------------------------
+   Tablet
+   ------------------------------------------------------------------ */
+
+@media (max-width: 920px) {
+  .app-shell__content,
+  body.console-mode .app-shell__content {
+    padding-bottom: 104px;
+  }
+
+  .bottom-nav__inner {
+    min-height: 80px;
+  }
+
+  .bottom-nav__item {
+    min-height: 80px;
+    gap: 7px;
+    font-size: 0.86rem;
+  }
+
+  .bottom-nav__icon {
+    width: 27px;
+    height: 27px;
+  }
+
+  .bottom-nav__item.active::after {
+    bottom: 13px;
+    width: 38px;
+    height: 5px;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Mobile / small touch LCD: icons only
+   ------------------------------------------------------------------ */
+
+@media (max-width: 640px) {
+  .app-shell__content,
+  body.console-mode .app-shell__content {
+    padding-bottom: 78px;
+  }
+
+  .bottom-nav__inner {
+    min-height: 70px;
+  }
+
+  .bottom-nav__item {
+    min-height: 70px;
+    gap: 0;
+  }
+
+  .bottom-nav__label {
+    display: none;
+  }
+
+  .bottom-nav__icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .bottom-nav__item:not(:last-child)::before {
+    top: 30%;
+    bottom: 30%;
+  }
+
+  .bottom-nav__item.active::after {
+    bottom: 8px;
+    width: 34px;
+    height: 4px;
+  }
+}
+
+/* Very small screens: keep icons fitting neatly */
+@media (max-width: 420px) {
+  .bottom-nav__icon {
+    width: 25px;
+    height: 25px;
+  }
+
+  .bottom-nav__inner {
+    min-height: 64px;
+  }
+
+  .bottom-nav__item {
+    min-height: 64px;
+  }
+}

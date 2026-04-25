@@ -5,3 +5,4 @@ pydantic
 httpx
 apscheduler
 alembic
+python-jose[cryptography]

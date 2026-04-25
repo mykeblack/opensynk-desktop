@@ -1,0 +1,81 @@
+/* PageTransition.css
+   Full route transition + navigation visibility CSS.
+
+   Put this file at:
+   src/components/PageTransition.css
+
+   Import it from:
+   src/components/PageTransition.tsx
+   with:
+   import './PageTransition.css';
+*/
+
+.app-route-stage {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(95, 41, 137, 0.28), transparent 32%),
+    radial-gradient(circle at 10% 0%, rgba(29, 78, 216, 0.22), transparent 30%),
+    linear-gradient(180deg, #070f1f 0%, #050b14 45%, #030812 100%);
+}
+
+.page-transition {
+  width: 100%;
+  min-height: 100vh;
+  will-change: transform, opacity;
+}
+
+/* Desktop mode: soft fade/lift transition */
+.page-transition--desktop {
+  position: relative;
+}
+
+/* Console mode: full-screen slide transition */
+.page-transition--console {
+  position: absolute;
+  inset: 0;
+  background: #050b14;
+}
+
+/* ------------------------------------------------------------------
+   Bottom navigation visibility
+   ------------------------------------------------------------------
+   Desktop must ALWAYS show the bottom navigation.
+   Console mode must hide it.
+*/
+
+body:not(.console-mode) .bottom-nav,
+body:not(.console-mode) .dashboard-bottom-nav,
+body:not(.console-mode) .app-bottom-nav,
+body:not(.console-mode) nav.bottom-nav {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* If any parent was accidentally hidden by console-mode CSS, restore it
+   in desktop mode only. */
+body:not(.console-mode) .app-shell,
+body:not(.console-mode) .app-layout,
+body:not(.console-mode) .modern-dashboard {
+  visibility: visible;
+}
+
+/* ------------------------------------------------------------------
+   Console-only display helpers
+   ------------------------------------------------------------------ */
+
+.console-only {
+  display: none !important;
+}
+
+body.console-mode .console-only {
+  display: flex !important;
+}
+
+body:not(.console-mode) .console-header {
+  display: none !important;
+}
