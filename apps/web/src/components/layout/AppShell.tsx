@@ -31,17 +31,8 @@ const navItems = [
 
 export function AppShell({
   children,
-  consoleMode = false,
-  onConsoleModeChange,
 }: Props) {
   const location = useLocation();
-
-  function exitConsoleMode() {
-    localStorage.setItem('opensynk_console_mode', 'false');
-    document.body.classList.remove('console-mode');
-    onConsoleModeChange?.(false);
-  }
-
   return (
     <div className="app-shell">
       <main className="app-shell__content">{children}</main>
@@ -67,19 +58,6 @@ export function AppShell({
               </Link>
             );
           })}
-
-          {consoleMode && (
-            <button
-              type="button"
-              className="bottom-nav__item bottom-nav__item--exit-console"
-              onClick={exitConsoleMode}
-              aria-label="Exit console mode"
-              title="Exit console mode"
-            >
-              <LogOut className="bottom-nav__icon" size={28} strokeWidth={2.15} />
-              <span className="bottom-nav__label">Exit</span>
-            </button>
-          )}
         </div>
       </nav>
     </div>

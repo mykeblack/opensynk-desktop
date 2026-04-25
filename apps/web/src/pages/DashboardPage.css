@@ -1235,3 +1235,32 @@
 .battery-soc-ring__value {
   stroke-width: 5;
 }
+
+body.console-mode .brand-header,
+body.console-mode .hero-overview,
+body.console-mode .dashboard-grid,
+body.console-mode .dashboard-tiles {
+  display: none !important;
+}
+
+body.console-mode .modern-dashboard {
+  padding-top: 0;
+}
+
+body.console-mode .power-flow-card {
+  margin-top: 0;
+  min-height: calc(100vh - 92px);
+}
+
+body.console-mode .power-flow-visual {
+  height: calc(100vh - 220px);
+  min-height: 430px;
+}
+
+body.console-mode .modern-dashboard{
+  padding:0;
+}
+
+body.console-mode .app-shell__content {
+    padding-bottom: 0px;
+}

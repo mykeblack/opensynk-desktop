@@ -11,6 +11,11 @@
    - uses icons only on mobile/small LCD screens
 */
 
+body{
+  margin:0px;
+  padding:0px;
+}
+
 .app-shell {
   min-height: 100vh;
   color: #f8fafc;
