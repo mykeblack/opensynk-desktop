@@ -7,6 +7,7 @@ export interface SettingsResponse {
   username: string;
   poll_interval_seconds: number;
   selected_site: string;
+  solar_capacity_kwp: string;
   verify_ssl: boolean;
   data_mode: 'demo' | 'live';
   tariff_daily_rate: string;
@@ -25,6 +26,7 @@ export interface SaveSettingsPayload {
   username: string;
   poll_interval_seconds: number;
   selected_site: string;
+  solar_capacity_kwp: string;
   verify_ssl: boolean;
   data_mode: 'demo' | 'live';
   tariff_daily_rate: string;

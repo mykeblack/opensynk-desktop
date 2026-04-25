@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Eye, EyeOff, KeyRound, LogIn, Mail } from 'lucide-react';
 import { login } from '../api/auth';
 import { AppBrand } from '../components/AppBrand';
 import './LoginPage.css';
@@ -63,22 +64,25 @@ export default function LoginPage({ onLogin }: Props) {
           <AppBrand href="" />
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form className="login-form" onSubmit={handleSubmit}>
           <div className="login-field">
             <label>Email</label>
-            <input
-              type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              required
-            />
+            <div className="login-input-wrapper">
+              <span className="login-input-icon"><Mail size={16} /></span>
+              <input
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                required
+              />
+            </div>
           </div>
 
           <div className="login-field">
             <label>Password</label>
-
             <div className="login-password-wrapper">
+              <span className="login-input-icon"><KeyRound size={16} /></span>
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
@@ -86,37 +90,35 @@ export default function LoginPage({ onLogin }: Props) {
                 placeholder="Your Sunsynk password"
                 required
               />
-
               <button
                 type="button"
-                className="login-show-password"
+                className="login-password-toggle"
                 onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
 
-            <div className="login-forgot">
-              <a
-                href="https://www.sunsynk.net/forget"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Forgot your Sunsynk password?
-              </a>
-            </div>
+            <a
+              className="login-forgot-link"
+              href="https://www.sunsynk.net/forget"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Forgot your Sunsynk password?
+            </a>
           </div>
 
-          <div className="login-checkbox">
-            <label>
-              <input
-                type="checkbox"
-                checked={keepSignedIn}
-                onChange={(e) => setKeepSignedIn(e.target.checked)}
-              />
-              Keep me signed in
-            </label>
-          </div>
+          <label className="login-checkbox">
+            <input
+              type="checkbox"
+              checked={keepSignedIn}
+              onChange={(e) => setKeepSignedIn(e.target.checked)}
+            />
+            Keep me signed in
+          </label>
 
           {error && <div className="login-error">{error}</div>}
 
@@ -125,16 +127,13 @@ export default function LoginPage({ onLogin }: Props) {
             className="login-button"
             disabled={loading}
           >
+            <LogIn size={18} />
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
         <div className="login-demo">
-          <p>
-            Try demo mode:
-            <br />
-            <strong>demo / demo</strong>
-          </p>
+          <p>Try demo mode with <strong>demo / demo</strong></p>
         </div>
       </div>
     </div>

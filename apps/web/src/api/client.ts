@@ -49,7 +49,7 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     localStorage.removeItem('opensynk_logged_in');
     localStorage.removeItem('opensynk_session_token');
     sessionStorage.removeItem('opensynk_session_token');
-    window.location.href = '/';
+    window.location.href = '/login';
     throw new Error('Session expired');
   }
 

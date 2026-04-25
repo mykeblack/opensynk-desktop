@@ -17,6 +17,7 @@ class Settings(Base):
     username = Column(String, nullable=True)
     poll_interval_seconds = Column(Integer, nullable=False, default=60)
     selected_site = Column(String, nullable=True)
+    solar_capacity_kwp = Column(String, nullable=False, default="2.37")
     verify_ssl = Column(Boolean, nullable=False, default=True)
     data_mode = Column(String, nullable=False, default="demo")
     tariff_daily_rate = Column(String, nullable=True, default="0.00")
