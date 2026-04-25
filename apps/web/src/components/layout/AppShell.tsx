@@ -1,57 +1,86 @@
+import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
+  BatteryCharging,
   Bell,
-  BatteryMedium,
   Clock3,
   Home,
   LogOut,
   PoundSterling,
+  Settings,
 } from 'lucide-react';
 import './AppShell.css';
 
 type Props = {
-  children: React.ReactNode;
+  children: ReactNode;
   username: string;
-  mode: 'demo' | 'live';
+  mode: string;
+  consoleMode?: boolean;
+  onConsoleModeChange?: (enabled: boolean) => void;
   onLogout: () => void;
 };
 
 const navItems = [
-  { href: '/dashboard', label: 'Home', icon: <Home size={22} strokeWidth={2.1} /> },
-  { href: '/history', label: 'History', icon: <Clock3 size={22} strokeWidth={2.1} /> },
-  { href: '/battery', label: 'Battery', icon: <BatteryMedium size={22} strokeWidth={2.1} /> },
-  { href: '/tariffs', label: 'Tariffs', icon: <PoundSterling size={22} strokeWidth={2.1} /> },
-  { href: '/alerts', label: 'Alerts', icon: <Bell size={22} strokeWidth={2.1} /> },
+  { to: '/dashboard', label: 'Dashboard', icon: Home },
+  { to: '/history', label: 'History', icon: Clock3 },
+  { to: '/battery', label: 'Battery', icon: BatteryCharging },
+  { to: '/tariffs', label: 'Tariffs', icon: PoundSterling },
+  { to: '/alerts', label: 'Alerts', icon: Bell },
+  { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export function AppShell({ children, username, mode, onLogout }: Props) {
+export function AppShell({
+  children,
+  consoleMode = false,
+  onConsoleModeChange,
+}: Props) {
   const location = useLocation();
 
+  function exitConsoleMode() {
+    localStorage.setItem('opensynk_console_mode', 'false');
+    document.body.classList.remove('console-mode');
+    onConsoleModeChange?.(false);
+  }
+
   return (
-    <div className="shell-with-bottom-nav">
-      <div className="shell-content">{children}</div>
+    <div className="app-shell">
+      <main className="app-shell__content">{children}</main>
 
       <nav className="bottom-nav" aria-label="Main navigation">
-        {navItems.map((item) => {
-          const active =
-            location.pathname === item.href ||
-            (location.pathname === '/' && item.href === '/dashboard');
-          return (
-            <Link key={item.href} to={item.href} className={active ? 'active' : ''}>
-              <span className="bottom-nav__icon">{item.icon}</span>
-              <strong>{item.label}</strong>
-            </Link>
-          );
-        })}
-        <button
-          type="button"
-          onClick={onLogout}
-          className="bottom-nav__logout"
-          title={`${username} (${mode}) — Log out`}
-          aria-label="Log out"
-        >
-          <LogOut size={20} strokeWidth={2.1} />
-        </button>
+        <div className="bottom-nav__inner">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              location.pathname === item.to ||
+              (item.to === '/dashboard' && location.pathname === '/');
+
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={isActive ? 'bottom-nav__item active' : 'bottom-nav__item'}
+                aria-label={item.label}
+                title={item.label}
+              >
+                <Icon className="bottom-nav__icon" size={28} strokeWidth={2.15} />
+                <span className="bottom-nav__label">{item.label}</span>
+              </Link>
+            );
+          })}
+
+          {consoleMode && (
+            <button
+              type="button"
+              className="bottom-nav__item bottom-nav__item--exit-console"
+              onClick={exitConsoleMode}
+              aria-label="Exit console mode"
+              title="Exit console mode"
+            >
+              <LogOut className="bottom-nav__icon" size={28} strokeWidth={2.15} />
+              <span className="bottom-nav__label">Exit</span>
+            </button>
+          )}
+        </div>
       </nav>
     </div>
   );

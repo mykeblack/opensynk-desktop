@@ -10,33 +10,10 @@ import {
 } from 'recharts';
 import { Activity, BarChart3, Bolt, Clock3, Home, RadioTower, Sun } from 'lucide-react';
 import { getPowerHistory } from '../api/history';
-import { AppBrand } from '../components/AppBrand';
 import { getSettings } from '../api/settings';
 import type { PowerHistoryPoint } from '../types/history';
+import { PageTitle } from '../components/PageTitle';
 import './HistoryPage.css';
-
-function PageBrand({ mode, secondsSinceUpdate }: { mode: 'demo' | 'live'; secondsSinceUpdate: number | null }) {
-  const isStale = secondsSinceUpdate !== null && secondsSinceUpdate > 180;
-
-  return (
-    <header className="page-brand-header">
-      <AppBrand />
-
-      <div className="page-header-pills">
-        <span className={`status-pill ${isStale ? 'status-pill--stale' : 'status-pill--fresh'}`}>
-          <span />{isStale ? 'Stale' : 'Live refresh'}
-        </span>
-        <span className={`status-pill ${mode === 'demo' ? 'status-pill--demo' : 'status-pill--live'}`}>
-          {mode === 'demo' ? 'Demo Mode' : 'Live Mode'}
-        </span>
-        <span className="status-pill status-pill--muted">
-          <Clock3 size={15} />
-          {secondsSinceUpdate !== null ? `${secondsSinceUpdate}s ago` : 'Waiting'}
-        </span>
-      </div>
-    </header>
-  );
-}
 
 function formatWatts(value?: number | null): string {
   return `${Number(value ?? 0).toLocaleString()} W`;
@@ -108,7 +85,17 @@ export function HistoryPage() {
 
   return (
     <main className="modern-subpage history-page">
-      <PageBrand mode={dataMode} secondsSinceUpdate={secondsSinceUpdate} />
+      <PageTitle actions={(
+        <div className="page-header-pills">
+          <span className={`status-pill ${secondsSinceUpdate !== null && secondsSinceUpdate > 180 ? 'status-pill--stale' : 'status-pill--fresh'}`}>
+            <span />{secondsSinceUpdate !== null && secondsSinceUpdate > 180 ? 'Stale' : 'Live refresh'}
+          </span>
+          <span className={`status-pill ${dataMode === 'demo' ? 'status-pill--demo' : 'status-pill--live'}`}>
+            {dataMode === 'demo' ? 'Demo Mode' : 'Live Mode'}
+          </span>
+          <span className="status-pill status-pill--muted"><Clock3 size={15} />{secondsSinceUpdate !== null ? `${secondsSinceUpdate}s ago` : 'Waiting'}</span>
+        </div>
+      )} />
 
       <section className="page-hero-card">
         <div>

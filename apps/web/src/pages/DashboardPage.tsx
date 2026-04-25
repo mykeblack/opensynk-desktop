@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useConsoleMode, useConsoleTransitionClass } from '../hooks/useConsoleMode';
 import {
   Area,
   AreaChart,
@@ -11,7 +12,7 @@ import {
 } from 'recharts';
 import {
   ArrowRight,
-  CircleHelp,
+  Settings as SettingsIcon,
   Home,
   Leaf,
   PoundSterling,
@@ -20,7 +21,6 @@ import {
   Thermometer,
   TrendingUp,
 } from 'lucide-react';
-import { AppBrand } from '../components/AppBrand';
 
 /**
  * Portrait battery icon with a terminal and 3 horizontal level bars.
@@ -484,6 +484,8 @@ function FlowPath({
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const { consoleMode } = useConsoleMode();
+  const consoleTransitionClass = useConsoleTransitionClass();
   const [data, setData] = useState<LiveSummary | null>(null);
   const [realData, setRealData] = useState<RealLiveSummary | null>(null);
   const [dataMode, setDataMode] = useState<DataMode>('demo');
@@ -623,7 +625,7 @@ export function DashboardPage() {
 
   if (error && !displayData) {
     return (
-      <main className="modern-dashboard">
+      <main className={`modern-dashboard ${consoleMode ? `console-mode-page console-dashboard ${consoleTransitionClass}` : ''}`}>
         <section className="dashboard-error-card">
           <h1>Dashboard unavailable</h1>
           <p>{error}</p>
@@ -648,13 +650,19 @@ export function DashboardPage() {
   const initial = (username || 'U').slice(0, 1).toUpperCase();
 
   return (
-    <main className="modern-dashboard">
+    <main className={`modern-dashboard ${consoleMode ? `console-mode-page console-dashboard ${consoleTransitionClass}` : ''}`}>
       <section className="hero-overview">
         <div className="hero-overview__image" />
         <div className="hero-overview__shade" />
 
         <header className="brand-header">
-          <AppBrand />
+          <a className="brand-logo" href="/dashboard" aria-label="OpenSynk dashboard">
+            <SunLogoMark size={56} />
+            <span className="brand-logo__text">
+              <strong>Open<span>Synk</span></strong>
+              <em>Powering your world.</em>
+            </span>
+          </a>
 
           <div className="header-actions">
             <div className={`live-pill ${dataMode === 'live' ? 'live-pill--live' : 'live-pill--demo'}`}>
@@ -721,9 +729,9 @@ export function DashboardPage() {
             <h2>Power Flow</h2>
             <p>Live energy movement</p>
           </div>
-          <button className="ghost-help" type="button">
-            <CircleHelp size={16} />
-            How it works
+          <button className="ghost-help" type="button" onClick={() => navigate('/settings')}>
+            <SettingsIcon size={16} />
+            Settings
           </button>
         </div>
 
@@ -756,7 +764,6 @@ export function DashboardPage() {
           />
           <FlowNode
             className="flow-node--home"
-            onClick={() => navigate('/alerts')}
             circleClassName="flow-node__circle--home"
             icon={<Home size={60} strokeWidth={2.15} />}
             label="Home"
@@ -803,6 +810,7 @@ export function DashboardPage() {
 
           <FlowNode
             className="flow-node--inverter"
+            onClick={() => navigate('/alerts')}
             circleClassName="flow-node__circle--inverter"
             icon={<Server size={50} strokeWidth={2.2} />}
             label="Inverter"

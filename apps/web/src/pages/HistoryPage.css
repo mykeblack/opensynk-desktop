@@ -133,3 +133,8 @@
   .history-kpi-grid { grid-template-columns: 1fr; }
   .history-chart { height: 320px; }
 }
+
+/* Shared title component spacing */
+.app-page-title {
+  margin-bottom: 28px;
+}
