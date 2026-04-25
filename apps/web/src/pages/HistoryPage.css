@@ -1,135 +1,267 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+import { useEffect, useState } from 'react';
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { getPowerHistory } from '../api/history';
+import { getSettings } from '../api/settings';
+import type { PowerHistoryPoint } from '../types/history';
+import './HistoryPage.css';
 
-:root {
-  --bg: #050b14;
-  --surface: rgba(8, 18, 32, 0.86);
-  --surface-strong: rgba(10, 22, 38, 0.94);
-  --line: rgba(148, 163, 184, 0.16);
-  --text: #f8fafc;
-  --muted: #a7b4c7;
-  --solar: #facc15;
-  --home: #22a3ff;
-  --battery: #2ee66b;
-  --grid-export: #a855f7;
-  --grid-import: #ef4444;
-  --money: #fbbf24;
+function formatWatts(value: number): string {
+  return `${value.toLocaleString()} W`;
 }
 
-* { box-sizing: border-box; }
+function formatTimeLabel(value: string | null): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
 
-.modern-subpage {
+  return date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export function HistoryPage() {
+  const [points, setPoints] = useState<PowerHistoryPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [dataMode, setDataMode] = useState<'demo' | 'live'>('demo');
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [now, setNow] = useState(new Date());
+
+  async function loadHistory() {
+    try {
+      setError(null);
+
+      const result = await getPowerHistory();
+      const pts = result.points ?? [];
+
+      setPoints(pts);
+
+      if (pts.length > 0 && pts[pts.length - 1].time) {
+        setLastUpdated(new Date(pts[pts.length - 1].time));
+      }
+    } catch (err) {
+      console.error('History load failed', err);
+      setError(err instanceof Error ? err.message : 'Failed to load history');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadHistory();
+
+    getSettings().then((s) => {
+      setDataMode(s.data_mode ?? 'demo');
+    });
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const secondsSinceUpdate =
+    lastUpdated ? Math.floor((now.getTime() - lastUpdated.getTime()) / 1000) : null;
+
+  const isStale = secondsSinceUpdate !== null && secondsSinceUpdate > 15;
+
+  const peakSolar = points.length > 0 ? Math.max(...points.map((p) => p.solar_w)) : 0;
+  const peakLoad = points.length > 0 ? Math.max(...points.map((p) => p.load_w)) : 0;
+  const maxImport = points.length > 0 ? Math.max(...points.map((p) => p.grid_w)) : 0;
+  const maxExport =
+    points.length > 0 ? Math.abs(Math.min(...points.map((p) => p.grid_w))) : 0;
+
+  return (
+    <main className="dashboard-page">
+      <header className="dashboard-page__header">
+        <div>
+          <h1>History</h1>
+          <p>Recorded power samples from the current data mode</p>
+
+          <div className="history-header__meta">
+            <span className={`badge ${isStale ? 'badge--stale' : 'badge--fresh'}`}>
+              {isStale ? 'Stale' : 'Fresh'}
+            </span>
+
+            <span
+              className={`badge ${
+                dataMode === 'demo' ? 'badge--demo' : 'badge--live'
+              }`}
+            >
+              {dataMode === 'demo' ? 'Demo Mode' : 'Live Mode'}
+            </span>
+
+            <span className="history-timer">
+              {secondsSinceUpdate !== null
+                ? `Updated ${secondsSinceUpdate}s ago`
+                : 'Waiting for data'}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {loading && <div className="dashboard-state">Loading history...</div>}
+
+      {error && !loading && (
+        <div className="dashboard-state dashboard-state--error">
+          Failed to load history: {error}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <section className="history-layout">
+          <div className="history-panel">
+            <div className="history-panel__header">
+              <h2>Power Trends</h2>
+              <span>{points.length} samples</span>
+            </div>
+
+            <div className="history-chart">
+              <ResponsiveContainer width="100%" height={360}>
+                <LineChart data={points}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="time"
+                    tickFormatter={formatTimeLabel}
+                    minTickGap={24}
+                  />
+                  <YAxis />
+                  <Tooltip
+                    labelFormatter={(label) =>
+                      formatTimeLabel(label as string | null)
+                    }
+                    formatter={(value: number) => formatWatts(value)}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="solar_w"
+                    name="Solar"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="load_w"
+                    name="Load"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="grid_w"
+                    name="Grid"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="battery_w"
+                    name="Battery"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="history-summary-grid">
+            <div className="history-summary-card">
+              <div className="history-summary-card__label">Peak Solar</div>
+              <div className="history-summary-card__value">
+                {formatWatts(peakSolar)}
+              </div>
+            </div>
+
+            <div className="history-summary-card">
+              <div className="history-summary-card__label">Peak Load</div>
+              <div className="history-summary-card__value">
+                {formatWatts(peakLoad)}
+              </div>
+            </div>
+
+            <div className="history-summary-card">
+              <div className="history-summary-card__label">Max Import</div>
+              <div className="history-summary-card__value">
+                {formatWatts(maxImport)}
+              </div>
+            </div>
+
+            <div className="history-summary-card">
+              <div className="history-summary-card__label">Max Export</div>
+              <div className="history-summary-card__value">
+                {formatWatts(maxExport)}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+    </main>
+  );
+}
+
+/* Shared modern page shell */
+.dashboard-page {
   min-height: 100vh;
-  padding: 24px clamp(16px, 2vw, 32px) 96px;
-  color: var(--text);
+  padding: clamp(18px, 2vw, 32px) clamp(18px, 2vw, 32px) 96px;
+  color: #f8fafc;
   background:
-    radial-gradient(circle at 85% 0%, rgba(95, 41, 137, 0.24), transparent 32%),
+    radial-gradient(circle at 85% 0%, rgba(95, 41, 137, 0.22), transparent 32%),
     radial-gradient(circle at 10% 0%, rgba(29, 78, 216, 0.18), transparent 30%),
-    linear-gradient(180deg, #070f1f 0%, #050b14 48%, #030812 100%);
+    linear-gradient(180deg, #070f1f 0%, #050b14 45%, #030812 100%);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.page-brand-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 22px;
+.dashboard-state {
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+  padding: 18px 20px;
+  color: #cbd5e1;
+  background: rgba(8, 18, 32, 0.78);
 }
 
-.brand-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  color: inherit;
-  text-decoration: none;
+.dashboard-state--error {
+  color: #fecaca;
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.1);
 }
-.brand-logo__mark-svg { filter: drop-shadow(0 0 18px rgba(250, 204, 21, 0.4)); }
-.brand-logo__text { display: grid; gap: 2px; line-height: 1; }
-.brand-logo__text strong {
-  font-family: 'Plus Jakarta Sans', Inter, sans-serif;
-  font-size: clamp(1.55rem, 2.3vw, 2rem);
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  color: #fff;
-}
-.brand-logo__text strong span { color: var(--solar); }
-.brand-logo__text em { color: #e2e8f0; font-size: 0.78rem; font-style: normal; font-weight: 500; }
 
-.page-header-pills { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
-.status-pill {
-  min-height: 38px;
+.badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: rgba(8, 18, 32, 0.72);
-  color: var(--muted);
+  gap: 7px;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 9px;
+  color: #dbeafe;
+  background: rgba(15, 23, 42, 0.58);
   font-size: 0.82rem;
   font-weight: 800;
 }
-.status-pill span { width: 9px; height: 9px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
-.status-pill--fresh { color: var(--battery); }
-.status-pill--stale { color: var(--grid-import); }
-.status-pill--live { color: var(--home); }
-.status-pill--demo { color: var(--money); }
-.status-pill--muted { color: var(--muted); }
 
-.page-hero-card,
-.modern-panel,
-.modern-kpi {
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surface);
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.2);
+.badge--fresh,
+.badge--live {
+  color: #86efac;
+  border-color: rgba(46, 230, 107, 0.25);
+  background: rgba(46, 230, 107, 0.08);
 }
 
-.page-hero-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 18px;
-  padding: 24px;
-  margin-bottom: 16px;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(34, 163, 255, 0.15), transparent 50%),
-    var(--surface);
-}
-.page-kicker { display: inline-flex; align-items: center; gap: 8px; color: var(--home); font-weight: 900; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.09em; }
-.page-hero-card h1 { margin: 8px 0 4px; font-size: clamp(2rem, 3.4vw, 3.4rem); font-weight: 900; letter-spacing: -0.06em; }
-.page-hero-card p { margin: 0; color: var(--muted); }
-.page-hero-stat { display: grid; place-items: center; min-width: 120px; }
-.page-hero-stat strong { font-size: 2.6rem; letter-spacing: -0.06em; }
-.page-hero-stat span { color: var(--muted); font-weight: 800; }
-
-.page-state { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 18px; color: var(--muted); font-weight: 700; }
-.page-state--error { border-color: rgba(239,68,68,0.35); color: #fecaca; background: rgba(239,68,68,0.1); }
-
-.history-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
-.modern-kpi { padding: 18px; display: grid; gap: 8px; }
-.modern-kpi svg { margin-bottom: 4px; }
-.modern-kpi span { color: var(--muted); font-weight: 800; font-size: 0.82rem; }
-.modern-kpi strong { font-size: clamp(1.35rem, 2.2vw, 1.9rem); font-weight: 900; letter-spacing: -0.05em; }
-.modern-kpi--solar svg { color: var(--solar); }
-.modern-kpi--home svg { color: var(--home); }
-.modern-kpi--grid svg { color: var(--grid-import); }
-.modern-kpi--export svg { color: var(--grid-export); }
-
-.modern-panel { padding: 22px; }
-.modern-panel__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
-.modern-panel__header h2 { margin: 0; font-size: 1.08rem; font-weight: 900; text-transform: uppercase; }
-.modern-panel__header p { margin: 7px 0 0; color: var(--muted); }
-.panel-icon { color: var(--home); opacity: 0.85; }
-.history-chart { height: 390px; }
-
-@media (max-width: 900px) {
-  .page-brand-header { align-items: flex-start; flex-direction: column; }
-  .page-header-pills { justify-content: flex-start; }
-  .page-hero-card { align-items: flex-start; flex-direction: column; }
-  .history-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 560px) {
-  .history-kpi-grid { grid-template-columns: 1fr; }
-  .history-chart { height: 320px; }
+.badge--stale,
+.badge--demo {
+  color: #fcd34d;
+  border-color: rgba(250, 204, 21, 0.28);
+  background: rgba(250, 204, 21, 0.08);
 }

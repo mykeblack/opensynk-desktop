@@ -16,7 +16,9 @@
   --temp: #38bdf8;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 .modern-dashboard {
   min-height: 100vh;
@@ -29,13 +31,19 @@
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-/* ---------- Header (overlaid on the hero image) ---------- */
+.dashboard-error-card {
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+/* ---------- Header / brand ---------- */
 
 .brand-header {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0 0 auto;
   z-index: 5;
   display: flex;
   align-items: center;
@@ -71,7 +79,9 @@
   color: #fff;
 }
 
-.brand-logo__text strong span { color: var(--solar); }
+.brand-logo__text strong span {
+  color: var(--solar);
+}
 
 .brand-logo__text em {
   color: #e2e8f0;
@@ -112,7 +122,9 @@
 }
 
 .live-pill__text,
-.user-pill__text { display: grid; }
+.user-pill__text {
+  display: grid;
+}
 
 .live-pill strong,
 .user-pill strong {
@@ -138,16 +150,13 @@
   font-weight: 900;
 }
 
-/* ---------- Hero (full-bleed banner) ---------- */
+/* ---------- Hero ---------- */
 
 .hero-overview {
   position: relative;
   min-height: 420px;
   overflow: hidden;
-  border-radius: 0;
-  border: 0;
   background: #081220;
-  /* Break out of .modern-dashboard horizontal padding so the image spans the viewport */
   margin: 0 calc(-1 * clamp(18px, 2vw, 32px)) 24px;
 }
 
@@ -157,11 +166,8 @@
   background-image: url('/solar-house-sunset.jpg');
   background-size: cover;
   background-position: center;
-  opacity: 1;
 }
 
-/* Subtle top + bottom fade so the header and metric strip read cleanly,
-   while keeping the middle of the image bright. */
 .hero-overview__shade {
   position: absolute;
   inset: 0;
@@ -169,29 +175,22 @@
     180deg,
     rgba(5, 11, 20, 0.55) 0%,
     rgba(5, 11, 20, 0.08) 18%,
-    rgba(5, 11, 20, 0) 38%,
-    rgba(5, 11, 20, 0) 55%,
-    rgba(5, 11, 20, 0.25) 100%
+    rgba(5, 11, 20, 0) 42%,
+    rgba(5, 11, 20, 0.42) 78%,
+    rgba(5, 11, 20, 0.78) 100%
   );
   pointer-events: none;
 }
 
 .hero-metrics {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: auto 0 0;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   padding: 14px clamp(20px, 2.4vw, 36px);
-  background: linear-gradient(
-    180deg,
-    rgba(5, 11, 20, 0) 0%,
-    rgba(5, 11, 20, 0.55) 40%,
-    rgba(5, 11, 20, 0.78) 100%
-  );
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: linear-gradient(180deg, rgba(5, 11, 20, 0) 0%, rgba(5, 11, 20, 0.54) 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .hero-metric {
@@ -201,16 +200,49 @@
   gap: 12px;
   padding: 12px 14px;
   border-right: 1px solid rgba(148, 163, 184, 0.18);
+  background: transparent;
+  box-shadow: none;
 }
 
-.hero-metric:last-child { border-right: 0; }
-.hero-metric__icon { display: grid; place-items: center; flex-shrink: 0; }
-.hero-metric__icon svg { width: 30px; height: 30px; }
-.hero-metric--solar .hero-metric__icon, .hero-metric--solar .hero-metric__subtitle { color: var(--solar); }
-.hero-metric--home .hero-metric__icon, .hero-metric--home .hero-metric__subtitle { color: var(--home); }
-.hero-metric--battery .hero-metric__icon, .hero-metric--battery .hero-metric__subtitle { color: var(--battery); }
-.hero-metric--grid .hero-metric__icon, .hero-metric--grid .hero-metric__subtitle { color: var(--grid-export); }
-.hero-metric--money .hero-metric__icon, .hero-metric--money .hero-metric__subtitle { color: var(--money); }
+.hero-metric:last-child {
+  border-right: 0;
+}
+
+.hero-metric__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.hero-metric__icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.hero-metric--solar .hero-metric__icon,
+.hero-metric--solar .hero-metric__subtitle {
+  color: var(--solar);
+}
+
+.hero-metric--home .hero-metric__icon,
+.hero-metric--home .hero-metric__subtitle {
+  color: var(--home);
+}
+
+.hero-metric--battery .hero-metric__icon,
+.hero-metric--battery .hero-metric__subtitle {
+  color: var(--battery);
+}
+
+.hero-metric--grid .hero-metric__icon,
+.hero-metric--grid .hero-metric__subtitle {
+  color: var(--grid-export);
+}
+
+.hero-metric--money .hero-metric__icon,
+.hero-metric--money .hero-metric__subtitle {
+  color: var(--money);
+}
 
 .hero-metric__title {
   font-size: 0.62rem;
@@ -237,26 +269,20 @@
 
 .hero-metric__link {
   display: inline-block;
-  color: var(--money);
   margin-top: 2px;
+  color: var(--money);
   font-size: 0.68rem;
   text-decoration: none;
 }
 
-/* ---------- Section cards ---------- */
+/* ---------- Shared cards ---------- */
 
 .power-flow-card,
-.analytics-card,
-.dashboard-error-card {
+.analytics-card {
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--surface);
   box-shadow: 0 16px 38px rgba(0, 0, 0, 0.2);
-}
-
-.power-flow-card {
-  padding: 22px 26px 22px;
-  margin-bottom: 18px;
 }
 
 .section-title-row {
@@ -293,237 +319,277 @@
   cursor: pointer;
 }
 
-/* ---------- Power Flow ---------- */
+/* ---------- Power flow ---------- */
+
+.power-flow-card {
+  padding: 18px 24px 14px;
+  margin-bottom: 18px;
+}
 
 .power-flow-visual {
   position: relative;
-  min-height: 560px;
-  margin-top: 18px;
+  height: 370px;
+  min-height: 370px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+/* SVG elbow paths sit behind nodes. The viewBox is 1000 x 360. */
+.flow-paths {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 360px;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.flow-path {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: miter;
+  stroke-dasharray: 14 20;
+  opacity: 0.62;
+  filter: drop-shadow(0 0 13px currentColor);
+  animation: flowDash var(--flow-speed, 1.2s) linear infinite;
+}
+
+.flow-path--solar {
+  stroke: var(--solar);
+  color: var(--solar);
+}
+
+.flow-path--home {
+  stroke: var(--home);
+  color: var(--home);
+}
+
+.flow-path--battery-charge,
+.flow-path--battery-discharge {
+  stroke: var(--battery);
+  color: var(--battery);
+}
+
+.flow-path--grid-export {
+  stroke: var(--grid-export);
+  color: var(--grid-export);
+}
+
+.flow-path--grid-import {
+  stroke: var(--grid-import);
+  color: var(--grid-import);
+}
+
+@keyframes flowDash {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -68; }
 }
 
 .flow-node {
   position: absolute;
-  display: grid;
-  justify-items: center;
-  text-align: center;
   z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  text-align: left;
 }
-
-/* Sun sits centered at the top; home sits centered in the middle row;
-   battery and grid sit on the SAME horizontal baseline as home. */
-.flow-node--solar { top: 10px; left: 50%; transform: translateX(-50%); }
-.flow-node--home { top: 278px; left: 50%; transform: translateX(-50%); }
-.flow-node--battery { top: 278px; left: 8%; }
-.flow-node--grid { top: 278px; right: 8%; }
 
 .flow-node__circle {
   position: relative;
-  width: 132px;
-  height: 132px;
+  width: 112px;
+  height: 112px;
+  flex: 0 0 112px;
   display: grid;
   place-items: center;
   border-radius: 999px;
   background: radial-gradient(circle at 50% 45%, rgba(30, 41, 59, 0.86), rgba(6, 14, 25, 0.96));
-  border: 5px solid currentColor;
+  border: 4px solid currentColor;
   color: currentColor;
-  box-shadow: 0 0 42px color-mix(in srgb, currentColor 26%, transparent);
+  box-shadow: 0 0 32px color-mix(in srgb, currentColor 24%, transparent);
 }
 
-.flow-node__circle--solar { color: var(--solar); }
-.flow-node__circle--home { color: var(--home); }
-.flow-node__circle--battery { color: var(--battery); }
-.flow-node__circle--grid-export { color: var(--grid-export); }
-.flow-node__circle--grid-import { color: var(--grid-import); }
+.flow-node__circle--solar {
+  color: var(--solar);
+  border-color: rgba(148, 163, 184, 0.2);
+  border-width: 2px;
+  box-shadow: 0 0 30px rgba(250, 204, 21, 0.2);
+}
+
+.flow-node__circle--battery {
+  color: var(--battery);
+  border-color: rgba(148, 163, 184, 0.2);
+  border-width: 2px;
+  box-shadow: 0 0 30px rgba(46, 230, 107, 0.2);
+}
+
+.flow-node__circle--home {
+  color: var(--home);
+}
+
+.flow-node__circle--grid-export {
+  color: var(--grid-export);
+}
+
+.flow-node__circle--grid-import {
+  color: var(--grid-import);
+}
+
+.flow-node__circle--inverter {
+  color: #fb923c;
+}
+
+.flow-node__info {
+  min-width: 122px;
+  display: grid;
+  gap: 3px;
+}
 
 .flow-node__label {
-  margin-top: 15px;
-  font-size: 0.88rem;
+  margin: 0;
+  color: #e5edf8;
+  font-size: 0.76rem;
   font-weight: 900;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .flow-node__value {
-  margin-top: 5px;
-  font-size: clamp(1.6rem, 2.4vw, 2rem);
-  line-height: 1;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.32rem, 1.65vw, 1.65rem);
   font-weight: 900;
-  letter-spacing: -0.06em;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
 }
 
 .flow-node__status {
-  min-height: 22px;
-  margin-top: 8px;
+  min-height: 0;
+  margin: 0;
   color: currentColor;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.84rem;
+  font-weight: 750;
 }
 
-/* Inline label that sits next to the solar ring */
-.flow-node__side-label {
-  position: absolute;
-  z-index: 3;
-  display: grid;
-  gap: 4px;
+/* Node centres match the SVG path coordinates:
+   left column = 25%, centre = 50%, right column = 75%.
+   The left nodes place text first and circle second. */
+.flow-node--solar,
+.flow-node--battery {
+  left: calc(25% - 196px);
+  transform: none;
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.flow-node--solar {
+  top: 24px;
+}
+
+.flow-node--battery {
+  top: 224px;
+}
+
+.flow-node--solar .flow-node__info,
+.flow-node--battery .flow-node__info {
+  text-align: right;
+}
+
+.flow-node--grid,
+.flow-node--home {
+  left: calc(75% - 56px);
+  right: auto;
+  transform: none;
+  flex-direction: row;
   text-align: left;
 }
 
-.flow-node__side-label--solar {
-  top: 46px;
-  left: calc(50% + 110px);
-  min-width: 150px;
+.flow-node--grid {
+  top: 24px;
 }
 
-.flow-node__side-label .flow-node__label {
-  color: var(--muted);
-  margin-top: 0;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-.flow-node__side-label .flow-node__value {
-  color: var(--text);
-  margin-top: 0;
-  font-size: clamp(1.6rem, 2.2vw, 2rem);
-}
-.flow-node__side-label .flow-node__status {
-  color: var(--muted);
-  margin-top: 0;
-  font-size: 0.88rem;
-  font-weight: 600;
+.flow-node--home {
+  top: 224px;
 }
 
-/* Solar efficiency ring — thin stroke, sits just outside the circle */
-.solar-efficiency-ring {
+.flow-node--inverter {
+  top: 124px;
+  left: calc(50% - 56px);
+  width: 112px;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+  transform: none;
+}
+
+.flow-node--inverter .flow-node__info {
+  min-width: unset;
+  text-align: center;
+}
+
+.flow-node--inverter .flow-node__value,
+.flow-node--inverter .flow-node__status {
+  display: none;
+}
+
+/* Progress rings */
+.solar-efficiency-ring,
+.battery-soc-ring {
   position: absolute;
-  inset: -8px;
-  width: 148px;
-  height: 148px;
+  inset: -7px;
+  width: 126px;
+  height: 126px;
   transform: rotate(-90deg);
   pointer-events: none;
   overflow: visible;
 }
 
 .solar-efficiency-ring__track,
-.solar-efficiency-ring__value {
+.battery-soc-ring__track {
   fill: none;
-  stroke-width: 4;
+  stroke-width: 2.4;
+  stroke: rgba(148, 163, 184, 0.2);
 }
 
-.solar-efficiency-ring__track { stroke: rgba(148, 163, 184, 0.18); }
+.solar-efficiency-ring__value,
+.battery-soc-ring__value {
+  fill: none;
+  stroke-width: 5.2;
+  stroke-linecap: round;
+  stroke-dasharray: 339.292;
+  stroke-dashoffset: calc(339.292 - (339.292 * var(--ring-progress, 0)) / 100);
+  transition: stroke-dashoffset 420ms ease;
+}
+
 .solar-efficiency-ring__value {
   stroke: var(--solar);
-  stroke-linecap: round;
-  stroke-dasharray: 339.292;
-  stroke-dashoffset: calc(339.292 - (339.292 * var(--ring-progress)) / 100);
-  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.45));
-  transition: stroke-dashoffset 420ms ease;
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.52));
 }
 
-/* Solar % label inside the circle, below the sun icon */
-.solar-percent {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 22px;
-  text-align: center;
-  color: var(--solar);
-  font-size: 1rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  text-shadow: 0 0 12px rgba(250, 204, 21, 0.45);
-  pointer-events: none;
-}
-
-/* Battery state-of-charge ring (mirror of solar-efficiency-ring) */
-.battery-soc-ring {
-  position: absolute;
-  inset: -8px;
-  width: 148px;
-  height: 148px;
-  transform: rotate(-90deg);
-  pointer-events: none;
-  overflow: visible;
-}
-.battery-soc-ring__track,
-.battery-soc-ring__value {
-  fill: none;
-  stroke-width: 4;
-}
-.battery-soc-ring__track { stroke: rgba(148, 163, 184, 0.18); }
 .battery-soc-ring__value {
   stroke: var(--battery);
-  stroke-linecap: round;
-  stroke-dasharray: 339.292;
-  stroke-dashoffset: calc(339.292 - (339.292 * var(--ring-progress)) / 100);
-  filter: drop-shadow(0 0 8px rgba(46, 230, 107, 0.55));
-  transition: stroke-dashoffset 420ms ease;
+  filter: drop-shadow(0 0 8px rgba(46, 230, 107, 0.52));
 }
 
-/* Battery % label inside the circle, below the icon */
+.solar-percent,
 .battery-percent {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 22px;
+  inset: auto 0 16px;
+  color: currentColor;
   text-align: center;
-  color: var(--battery);
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 900;
   letter-spacing: -0.02em;
-  text-shadow: 0 0 12px rgba(46, 230, 107, 0.45);
+  text-shadow: 0 0 12px currentColor;
   pointer-events: none;
 }
 
-/* Flow arrow streams */
-.flow-line {
-  --flow-speed: 1s;
-  position: absolute;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  pointer-events: none;
-}
-
-.flow-line--solar-home {
-  top: 152px;
-  left: 50%;
-  width: 60px;
-  height: 130px;
-  transform: translateX(-50%);
-  flex-direction: column;
-  gap: 10px;
-}
-/* Horizontal streams sit at the vertical center of the middle row (home/battery/grid): 278 + 132/2 = 344 */
-.flow-line--battery-home {
-  top: 330px;
-  left: calc(8% + 138px);
-  right: calc(50% + 80px);
-}
-.flow-line--grid-home {
-  top: 330px;
-  left: calc(50% + 80px);
-  right: calc(8% + 138px);
-}
-
-.flow-arrow {
-  font-size: 3rem;
-  line-height: 0.8;
-  font-weight: 900;
-  opacity: 0;
-  animation: flowPulse var(--flow-speed) linear infinite;
-}
-.flow-line--solar .flow-arrow { color: var(--solar); text-shadow: 0 0 20px rgba(250, 204, 21, 0.8); }
-.flow-line--battery .flow-arrow { color: var(--battery); text-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
-.flow-line--grid-export .flow-arrow { color: var(--grid-export); text-shadow: 0 0 20px rgba(168, 85, 247, 0.8); }
-.flow-line--grid-import .flow-arrow { color: var(--grid-import); text-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
-
-@keyframes flowPulse {
-  0% { opacity: 0; transform: scale(0.84); }
-  35% { opacity: 1; transform: scale(1.12); }
-  100% { opacity: 0; transform: scale(0.84); }
+/* Legacy stream markup is intentionally hidden. */
+.flow-line,
+.flow-node__side-label,
+.battery-fill-meter {
+  display: none;
 }
 
 .flow-legend {
@@ -532,19 +598,32 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 24px;
-  padding-top: 8px;
+  padding-top: 0;
+  margin-top: -6px;
   color: #d7deea;
   font-size: 0.92rem;
 }
-.flow-legend span { display: inline-flex; align-items: center; gap: 8px; }
-.legend-dot { width: 9px; height: 9px; border-radius: 999px; display: inline-block; }
+
+.flow-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  display: inline-block;
+  border-radius: 999px;
+}
+
 .legend-dot--solar { background: var(--solar); }
 .legend-dot--home { background: var(--home); }
 .legend-dot--battery { background: var(--battery); }
 .legend-dot--export { background: var(--grid-export); }
 .legend-dot--import { background: var(--grid-import); }
 
-/* ---------- Analytics grid (chart + status) ---------- */
+/* ---------- Analytics grid ---------- */
 
 .dashboard-grid {
   display: grid;
@@ -557,7 +636,12 @@
   padding: 22px;
   min-height: 210px;
 }
-.analytics-card--wide { min-height: 340px; display: flex; flex-direction: column; }
+
+.analytics-card--wide {
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+}
 
 .segmented-tabs {
   display: inline-flex;
@@ -566,20 +650,31 @@
   border-radius: 8px;
   background: rgba(15, 23, 42, 0.35);
 }
+
 .segmented-tabs button {
   padding: 8px 16px;
   color: var(--muted);
   border: 0;
   border-right: 1px solid var(--line);
-  font-weight: 800;
-  font-size: 0.86rem;
   background: transparent;
   cursor: pointer;
   font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
 }
-.segmented-tabs button:last-child { border-right: 0; }
-.segmented-tabs button:hover { color: var(--text); }
-.segmented-tabs button.active { background: rgba(34, 163, 255, 0.2); color: #70c6ff; }
+
+.segmented-tabs button:last-child {
+  border-right: 0;
+}
+
+.segmented-tabs button:hover {
+  color: var(--text);
+}
+
+.segmented-tabs button.active {
+  background: rgba(34, 163, 255, 0.2);
+  color: #70c6ff;
+}
 
 .chart-container {
   margin-top: 18px;
@@ -595,24 +690,43 @@
   color: #d7deea;
   font-size: 0.88rem;
 }
-.chart-legend span { display: inline-flex; align-items: center; gap: 8px; }
 
-/* System Status card */
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---------- System status ---------- */
+
 .status-card .status-list {
   margin: 18px 0 0;
   display: grid;
   gap: 14px;
 }
+
 .status-card .status-list div {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
   padding-bottom: 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
 }
-.status-card .status-list dt { color: var(--muted); font-weight: 600; }
-.status-card .status-list dd { margin: 0; font-weight: 800; }
-.status-online { color: var(--battery); }
+
+.status-card .status-list dt {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.status-card .status-list dd {
+  margin: 0;
+  font-weight: 800;
+}
+
+.status-online {
+  color: var(--battery);
+}
+
 .status-online span {
   display: inline-block;
   width: 8px;
@@ -627,12 +741,13 @@
 .status-facts {
   margin-top: 18px;
   padding: 16px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: rgba(15, 23, 42, 0.4);
   display: grid;
   gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.4);
 }
+
 .status-fact {
   display: grid;
   grid-template-columns: 18px 1fr auto auto;
@@ -640,23 +755,34 @@
   gap: 10px;
   font-size: 0.92rem;
 }
+
 .status-fact__icon--solar { color: var(--solar); }
 .status-fact__icon--home { color: var(--home); }
 .status-fact__icon--battery { color: var(--battery); }
-.status-fact__label { color: var(--muted); font-weight: 600; }
-.status-fact__value { color: var(--text); font-weight: 800; }
+
+.status-fact__label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.status-fact__value {
+  color: var(--text);
+  font-weight: 800;
+}
+
 .status-fact__tag {
   padding: 2px 10px;
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 800;
 }
+
 .status-fact__tag--ok {
   color: var(--battery);
   background: rgba(46, 230, 107, 0.14);
 }
 
-/* ---------- Dashboard tiles row ---------- */
+/* ---------- Tiles ---------- */
 
 .dashboard-tiles {
   display: grid;
@@ -666,26 +792,27 @@
 }
 
 .mini-tile {
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surface);
-  padding: 16px 14px;
   display: grid;
   gap: 4px;
   justify-items: start;
+  padding: 16px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
 }
 
 .mini-tile__icon {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
   display: grid;
   place-items: center;
   margin-bottom: 4px;
-  background: rgba(15, 23, 42, 0.55);
   border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.55);
 }
+
 .mini-tile--solar .mini-tile__icon { color: var(--solar); }
 .mini-tile--home .mini-tile__icon { color: var(--home); }
 .mini-tile--battery .mini-tile__icon { color: var(--battery); }
@@ -693,17 +820,23 @@
 .mini-tile--temp .mini-tile__icon { color: var(--temp); }
 
 .mini-tile__label {
+  color: var(--muted);
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--muted);
   letter-spacing: 0.02em;
 }
+
 .mini-tile__value {
   font-size: clamp(1.2rem, 1.7vw, 1.45rem);
   font-weight: 900;
   letter-spacing: -0.04em;
 }
-.mini-tile__caption { font-size: 0.82rem; font-weight: 700; }
+
+.mini-tile__caption {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .mini-tile__caption--mute { color: var(--muted); }
 .mini-tile__caption--ok { color: var(--battery); }
 .mini-tile__caption--warn { color: var(--grid-import); }
@@ -714,22 +847,27 @@
 .mini-tile--battery .mini-tile__caption--mute { color: var(--battery); }
 .mini-tile--grid .mini-tile__caption--mute { color: var(--grid-export); }
 
-/* Savings CTA card */
 .savings-cta {
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 18px 20px;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(250, 204, 21, 0.2), transparent 55%),
-    var(--surface);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.24);
   overflow: hidden;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(250, 204, 21, 0.2), transparent 55%),
+    var(--surface);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.24);
 }
-.savings-cta__body { display: grid; gap: 6px; max-width: 70%; }
+
+.savings-cta__body {
+  display: grid;
+  gap: 6px;
+  max-width: 70%;
+}
+
 .savings-cta__body h3 {
   margin: 0;
   font-size: 1.02rem;
@@ -737,36 +875,38 @@
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
+
 .savings-cta__body p {
   margin: 0;
   color: var(--muted);
   font-size: 0.86rem;
 }
+
 .savings-cta__button {
+  width: max-content;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-top: 8px;
   padding: 9px 14px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(250, 204, 21, 0.2), rgba(250, 204, 21, 0.08));
   border: 1px solid rgba(250, 204, 21, 0.45);
+  border-radius: 10px;
   color: var(--solar);
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.2), rgba(250, 204, 21, 0.08));
+  font-size: 0.88rem;
   font-weight: 800;
   text-decoration: none;
-  font-size: 0.88rem;
-  width: max-content;
 }
+
 .savings-cta__button:hover {
   background: linear-gradient(135deg, rgba(250, 204, 21, 0.3), rgba(250, 204, 21, 0.12));
 }
+
 .savings-cta__art {
   color: var(--solar);
   opacity: 0.55;
   filter: drop-shadow(0 0 18px rgba(250, 204, 21, 0.35));
 }
-
-.dashboard-error-card { padding: 24px; }
 
 /* ---------- Responsive ---------- */
 
@@ -774,438 +914,86 @@
   .dashboard-tiles {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-  .savings-cta { grid-column: 1 / -1; }
+
+  .savings-cta {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 1180px) {
-  .hero-overview { min-height: 380px; }
-  .hero-metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 12px 14px; }
-  .hero-metric { padding: 10px 10px; min-height: 80px; }
-  .dashboard-grid { grid-template-columns: 1fr; }
-  .flow-node__side-label--solar { top: 30px; left: calc(50% + 96px); min-width: 130px; }
+  .hero-overview {
+    min-height: 380px;
+  }
+
+  .hero-metrics {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 12px 14px;
+  }
+
+  .hero-metric {
+    min-height: 80px;
+    padding: 10px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-node--solar,
+  .flow-node--battery {
+    left: calc(25% - 176px);
+  }
 }
 
 @media (max-width: 860px) {
-  .modern-dashboard { padding: 0 14px 92px; }
-  .brand-header { align-items: flex-start; flex-direction: column; padding: 16px 18px; }
-  .header-actions { width: 100%; flex-direction: row; align-items: stretch; gap: 10px; }
-  .live-pill, .user-pill { flex: 1; }
-  .hero-overview { min-height: 520px; margin-left: -14px; margin-right: -14px; }
-  .hero-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hero-metric:nth-child(5) { grid-column: 1 / -1; }
-  .power-flow-card { padding: 18px 14px; }
-  .power-flow-visual { min-height: 720px; }
-  .flow-node__circle { width: 106px; height: 106px; }
-  .solar-efficiency-ring,
-  .battery-soc-ring { width: 118px; height: 118px; inset: -6px; }
-  .flow-node--solar { top: 0; }
-  .flow-node--home { top: 300px; }
-  .flow-node--battery { top: 300px; left: 6%; }
-  .flow-node--grid { top: 300px; right: 6%; }
-  .flow-line--solar-home { top: 140px; height: 140px; }
-  .flow-line--battery-home { top: 342px; left: calc(6% + 110px); right: calc(50% + 60px); gap: 6px; }
-  .flow-line--grid-home { top: 342px; left: calc(50% + 60px); right: calc(6% + 110px); gap: 6px; }
-  .flow-arrow { font-size: 2.2rem; }
-  .dashboard-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .savings-cta { grid-column: 1 / -1; }
-}
+  .modern-dashboard {
+    padding: 0 14px 92px;
+  }
 
-/* ---------- Inverter-style power flow refinement ---------- */
-/* Hero metric strip: no glass/blur panels over the image */
-.hero-metrics {
-  background: linear-gradient(180deg, rgba(5, 11, 20, 0) 0%, rgba(5, 11, 20, 0.5) 100%);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
+  .brand-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 16px 18px;
+  }
 
-.hero-metric {
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
+  .header-actions {
+    width: 100%;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 10px;
+  }
 
-.power-flow-card {
-  padding: 18px 24px 14px;
-}
+  .live-pill,
+  .user-pill {
+    flex: 1;
+  }
 
-.power-flow-visual {
-  position: relative;
-  height: 390px;
-  min-height: 390px;
-  margin-top: 8px;
-  overflow: hidden;
-}
+  .hero-overview {
+    min-height: 520px;
+    margin-left: -14px;
+    margin-right: -14px;
+  }
 
-.flow-paths {
-  position: absolute;
-  inset: 0 4% 0 4%;
-  z-index: 1;
-  overflow: visible;
-}
+  .hero-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
-.flow-path {
-  fill: none;
-  stroke-width: 5;
-  stroke-linecap: round;
-  stroke-dasharray: 8 16;
-  opacity: 0.36;
-  filter: drop-shadow(0 0 12px currentColor);
-}
+  .hero-metric:nth-child(5) {
+    grid-column: 1 / -1;
+  }
 
-.flow-path--solar { stroke: var(--solar); color: var(--solar); }
-.flow-path--home { stroke: var(--home); color: var(--home); }
-.flow-path--battery-charge,
-.flow-path--battery-discharge { stroke: var(--battery); color: var(--battery); }
-.flow-path--grid-export { stroke: var(--grid-export); color: var(--grid-export); }
-.flow-path--grid-import { stroke: var(--grid-import); color: var(--grid-import); }
+  .power-flow-card {
+    padding: 18px 14px;
+  }
 
-.flow-dot { filter: drop-shadow(0 0 12px currentColor); }
-.flow-dot--solar { fill: var(--solar); color: var(--solar); }
-.flow-dot--home { fill: var(--home); color: var(--home); }
-.flow-dot--battery { fill: var(--battery); color: var(--battery); }
-.flow-dot--grid-export { fill: var(--grid-export); color: var(--grid-export); }
-.flow-dot--grid-import { fill: var(--grid-import); color: var(--grid-import); }
-
-.flow-node {
-  position: absolute;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-items: unset;
-  gap: 18px;
-  text-align: left;
-}
-
-.flow-node--solar {
-  top: 38px;
-  left: 30%;
-  transform: translateX(-50%);
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
-.flow-node--grid {
-  top: 38px;
-  left: 70%;
-  right: auto;
-  transform: translateX(-50%);
-}
-
-.flow-node--inverter {
-  top: 150px;
-  left: 50%;
-  transform: translateX(-50%);
-  flex-direction: column;
-  gap: 10px;
-  text-align: center;
-}
-
-.flow-node--battery {
-  top: 254px;
-  left: 30%;
-  transform: translateX(-50%);
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
-.flow-node--home {
-  top: 254px;
-  left: 70%;
-  right: auto;
-  transform: translateX(-50%);
-}
-
-.flow-node__circle {
-  width: 112px;
-  height: 112px;
-  border-width: 4px;
-  flex: 0 0 112px;
-  box-shadow: 0 0 32px color-mix(in srgb, currentColor 24%, transparent);
-}
-
-.flow-node__circle--inverter {
-  color: #fb923c;
-}
-
-.flow-node__info {
-  min-width: 122px;
-  display: grid;
-  gap: 3px;
-}
-
-.flow-node--inverter .flow-node__info {
-  min-width: unset;
-  text-align: center;
-}
-
-.flow-node--solar .flow-node__info,
-.flow-node--battery .flow-node__info {
-  text-align: right;
-}
-
-.flow-node__label {
-  margin-top: 0;
-  font-size: 0.76rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #e5edf8;
-}
-
-.flow-node__value {
-  margin-top: 0;
-  font-size: clamp(1.32rem, 1.65vw, 1.65rem);
-  line-height: 1.05;
-  letter-spacing: -0.05em;
-}
-
-.flow-node__status {
-  min-height: 0;
-  margin-top: 0;
-  font-size: 0.84rem;
-  font-weight: 750;
-  color: currentColor;
-}
-
-/* Old side-label solar overlay is no longer used in the inverter layout */
-.flow-node__side-label { display: none; }
-
-.solar-efficiency-ring,
-.battery-soc-ring {
-  inset: -7px;
-  width: 126px;
-  height: 126px;
-}
-
-.solar-efficiency-ring__value,
-.battery-soc-ring__value {
-  stroke-dasharray: 339.292;
-  /* default to empty if inline value is missing */
-  stroke-dashoffset: 339.292;
-}
-
-.solar-percent,
-.battery-percent {
-  bottom: 17px;
-  font-size: 0.82rem;
-}
-
-.battery-fill-meter { display: none; }
-
-/* Hide old arrow glyph streams if any remain in markup */
-.flow-line { display: none; }
-
-.flow-legend {
-  padding-top: 0;
-  margin-top: -4px;
-}
-
-@media (max-width: 980px) {
   .power-flow-visual {
     height: 560px;
     min-height: 560px;
   }
 
-  .flow-paths { display: none; }
-
-  .flow-node {
-    transform: none;
+  .flow-paths {
+    display: none;
   }
-
-  .flow-node--solar { top: 10px; left: 20px; }
-  .flow-node--grid { top: 10px; left: auto; right: 20px; }
-  .flow-node--inverter { top: 205px; left: 50%; transform: translateX(-50%); }
-  .flow-node--battery { top: 395px; left: 20px; }
-  .flow-node--home { top: 395px; left: auto; right: 20px; }
-
-  .flow-node__circle {
-    width: 96px;
-    height: 96px;
-    flex-basis: 96px;
-  }
-
-  .flow-node__info { min-width: 95px; }
-}
-
-/* ---------- Stable straight-elbow inverter flow layout ----------
-   These overrides replace the earlier curved SVG paths. The visual now uses
-   a fixed 1000x390 SVG coordinate system, so the paths and nodes keep their
-   alignment at any desktop width. */
-.power-flow-card {
-  padding: 18px 24px 14px;
-}
-
-.power-flow-visual {
-  position: relative;
-  height: 390px;
-  min-height: 390px;
-  margin-top: 8px;
-  overflow: hidden;
-}
-
-.flow-paths {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 390px;
-  z-index: 1;
-  overflow: visible;
-}
-
-.flow-path {
-  fill: none;
-  stroke-width: 6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 14 20;
-  opacity: 0.5;
-  filter: drop-shadow(0 0 13px currentColor);
-  animation: flowDash var(--flow-speed, 1.2s) linear infinite;
-}
-
-@keyframes flowDash {
-  from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: -68; }
-}
-
-.flow-dot {
-  filter: drop-shadow(0 0 14px currentColor);
-}
-
-/* Desktop node geometry: these values are paired with the SVG viewBox:
-   Solar center   = 30% / y 100
-   Grid center    = 70% / y 100
-   Inverter center= 50% / y 200
-   Battery center = 30% / y 300
-   Home center    = 70% / y 300 */
-.flow-node {
-  position: absolute;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  text-align: left;
-}
-
-.flow-node__circle {
-  width: 112px;
-  height: 112px;
-  flex: 0 0 112px;
-  border-width: 4px;
-  box-shadow: 0 0 32px color-mix(in srgb, currentColor 24%, transparent);
-}
-
-.flow-node__info {
-  min-width: 122px;
-  display: grid;
-  gap: 3px;
-}
-
-.flow-node__label {
-  margin-top: 0;
-  font-size: 0.76rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #e5edf8;
-}
-
-.flow-node__value {
-  margin-top: 0;
-  font-size: clamp(1.32rem, 1.65vw, 1.65rem);
-  line-height: 1.05;
-  letter-spacing: -0.05em;
-}
-
-.flow-node__status {
-  min-height: 0;
-  margin-top: 0;
-  font-size: 0.84rem;
-  font-weight: 750;
-  color: currentColor;
-}
-
-/* Left-side nodes: text on the left, circle on the right. */
-.flow-node--solar,
-.flow-node--battery {
-  left: calc(30% - 196px);
-  transform: none;
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
-.flow-node--solar { top: 44px; }
-.flow-node--battery { top: 244px; }
-
-.flow-node--solar .flow-node__info,
-.flow-node--battery .flow-node__info {
-  text-align: right;
-}
-
-/* Right-side nodes: circle on the left, text on the right. */
-.flow-node--grid,
-.flow-node--home {
-  left: calc(70% - 56px);
-  right: auto;
-  transform: none;
-  flex-direction: row;
-  text-align: left;
-}
-
-.flow-node--grid { top: 44px; }
-.flow-node--home { top: 244px; }
-
-/* Center inverter: circle above label, centered on 50% / y 200. */
-.flow-node--inverter {
-  top: 144px;
-  left: calc(50% - 56px);
-  transform: none;
-  width: 112px;
-  flex-direction: column;
-  gap: 10px;
-  text-align: center;
-}
-
-.flow-node--inverter .flow-node__info {
-  min-width: unset;
-  text-align: center;
-}
-
-.flow-node__circle--inverter {
-  color: #fb923c;
-}
-
-/* Ring sizing for 112px node circles */
-.solar-efficiency-ring,
-.battery-soc-ring {
-  inset: -7px;
-  width: 126px;
-  height: 126px;
-}
-
-.solar-percent,
-.battery-percent {
-  bottom: 17px;
-  font-size: 0.82rem;
-}
-
-.battery-fill-meter { display: none; }
-.flow-line { display: none; }
-.flow-node__side-label { display: none; }
-
-.flow-legend {
-  padding-top: 0;
-  margin-top: -4px;
-}
-
-@media (max-width: 980px) {
-  .power-flow-visual {
-    height: 560px;
-    min-height: 560px;
-  }
-
-  .flow-paths { display: none; }
 
   .flow-node {
     transform: none;
@@ -1250,140 +1038,200 @@
   .flow-node__info {
     min-width: 95px;
   }
+
+  .solar-efficiency-ring,
+  .battery-soc-ring {
+    width: 110px;
+    height: 110px;
+    inset: -7px;
+  }
+
+  .dashboard-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .savings-cta {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 580px) {
+  .header-actions {
+    flex-direction: column;
+  }
+
+  .hero-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-metric {
+    border-right: 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  }
+
+  .hero-metric:last-child {
+    border-bottom: 0;
+  }
+
+  .power-flow-visual {
+    height: 720px;
+    min-height: 720px;
+  }
+
+  .flow-node {
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  .flow-node__info {
+    text-align: center !important;
+  }
+
+  .flow-node--solar { top: 10px; }
+  .flow-node--grid { top: 150px; }
+  .flow-node--inverter { top: 300px; }
+  .flow-node--battery { top: 450px; }
+  .flow-node--home { top: 590px; }
+
+  .dashboard-tiles {
+    grid-template-columns: 1fr;
+  }
+
+  .savings-cta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .savings-cta__body {
+    max-width: none;
+  }
+}
+
+/* ---------- Power-weighted animated flow update ---------- */
+.flow-path-group {
+  --flow-width: 5px;
+  --flow-speed: 1s;
+  --flow-glow: 14px;
+  --flow-opacity: 0.62;
+  color: currentColor;
+}
+
+.flow-path-group .flow-path {
+  stroke-width: var(--flow-width);
+  opacity: var(--flow-opacity);
+  stroke-linejoin: miter;
+  stroke-linecap: round;
+  stroke-dasharray: none;
+  animation: none;
+  filter: drop-shadow(0 0 var(--flow-glow) currentColor);
+}
+
+.flow-path-group.flow-path--solar {
+  color: var(--solar);
+}
+
+.flow-path-group.flow-path--home {
+  color: var(--home);
+}
+
+.flow-path-group.flow-path--battery-charge,
+.flow-path-group.flow-path--battery-discharge {
+  color: var(--battery);
+}
+
+.flow-path-group.flow-path--grid-export {
+  color: var(--grid-export);
+}
+
+.flow-path-group.flow-path--grid-import {
+  color: var(--grid-import);
+}
+
+.flow-path-group.flow-path--solar .flow-path {
+  stroke: var(--solar);
+}
+
+.flow-path-group.flow-path--home .flow-path {
+  stroke: var(--home);
+}
+
+.flow-path-group.flow-path--battery-charge .flow-path,
+.flow-path-group.flow-path--battery-discharge .flow-path {
+  stroke: var(--battery);
+}
+
+.flow-path-group.flow-path--grid-export .flow-path {
+  stroke: var(--grid-export);
+}
+
+.flow-path-group.flow-path--grid-import .flow-path {
+  stroke: var(--grid-import);
+}
+
+.flow-caret {
+  fill: currentColor;
+  font-size: calc(var(--flow-width) * 4.2);
+  font-weight: 900;
+  opacity: 0.95;
+  text-shadow: 0 0 var(--flow-glow) currentColor;
+  dominant-baseline: middle;
+  text-anchor: middle;
+  pointer-events: none;
 }
 
 
-/* ---------- Ring refinement update ----------
-   Make the solar/battery node borders subtle, and let the SVG rings carry
-   the actual efficiency/SOC progress. This avoids full-colour rings at 0%. */
+/* Clickable flow nodes */
+.flow-node--clickable {
+  cursor: pointer;
+  border-radius: 16px;
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+.flow-node--clickable:hover .flow-node__circle,
+.flow-node--clickable:focus-visible .flow-node__circle {
+  filter: brightness(1.12);
+}
+
+.flow-node--clickable:hover .flow-node__info,
+.flow-node--clickable:focus-visible .flow-node__info {
+  text-decoration: none;
+  filter: brightness(1.08);
+}
+
+.flow-node--clickable:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.7);
+  outline-offset: 8px;
+}
+
+/* ---------- Ring alignment fix ----------
+   Center progress SVGs by their own midpoint instead of inset math.
+   This removes the slight offset visible on the battery ring and keeps
+   solar/battery rings aligned even when the node border changes. */
 .flow-node__circle--solar,
 .flow-node__circle--battery {
-  border-color: rgba(148, 163, 184, 0.2);
-  border-width: 2px;
-}
-
-.flow-node__circle--solar {
-  box-shadow: 0 0 30px rgba(250, 204, 21, 0.2);
-}
-
-.flow-node__circle--battery {
-  box-shadow: 0 0 30px rgba(46, 230, 107, 0.2);
+  border: 0;
 }
 
 .solar-efficiency-ring,
 .battery-soc-ring {
-  inset: -7px;
+  inset: auto;
+  top: 50%;
+  left: 50%;
   width: 126px;
   height: 126px;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center center;
 }
 
 .solar-efficiency-ring__track,
 .battery-soc-ring__track {
-  stroke-width: 2.4;
-  stroke: rgba(148, 163, 184, 0.2);
+  stroke-width: 2.2;
 }
 
 .solar-efficiency-ring__value,
 .battery-soc-ring__value {
-  stroke-width: 5.2;
-  stroke-linecap: round;
-  stroke-dasharray: 339.292;
-  transition: stroke-dashoffset 420ms ease;
-}
-
-.solar-efficiency-ring__value {
-  stroke: var(--solar);
-  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.52));
-}
-
-.battery-soc-ring__value {
-  stroke: var(--battery);
-  filter: drop-shadow(0 0 8px rgba(46, 230, 107, 0.52));
-}
-
-.solar-percent,
-.battery-percent {
-  bottom: 16px;
-  font-size: 0.8rem;
-}
-
-.battery-fill-meter {
-  display: none;
-}
-
-/* ---------- Final square-elbow flow override ----------
-   Four paths use only horizontal/vertical segments and terminate at separate
-   inverter ports so they do not overlap at the centre. */
-.flow-path {
-  stroke-linejoin: miter;
-  stroke-linecap: round;
-  stroke-width: 6;
-  opacity: 0.62;
-}
-
-.flow-path--solar {
-  stroke: var(--solar);
-  color: var(--solar);
-}
-
-.flow-path--grid-import {
-  stroke: var(--grid-import);
-  color: var(--grid-import);
-}
-
-.flow-path--grid-export {
-  stroke: var(--grid-export);
-  color: var(--grid-export);
-}
-
-.flow-path--battery-charge,
-.flow-path--battery-discharge {
-  stroke: var(--battery);
-  color: var(--battery);
-}
-
-.flow-path--home {
-  stroke: var(--home);
-  color: var(--home);
-}
-
-/* Keep nodes locked to the SVG coordinate system. */
-.flow-node--solar {
-  top: 44px;
-  left: calc(30% - 196px);
-  transform: none;
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
-.flow-node--grid {
-  top: 44px;
-  left: calc(70% - 56px);
-  right: auto;
-  transform: none;
-  flex-direction: row;
-  text-align: left;
-}
-
-.flow-node--inverter {
-  top: 144px;
-  left: calc(50% - 56px);
-  transform: none;
-}
-
-.flow-node--battery {
-  top: 244px;
-  left: calc(30% - 196px);
-  transform: none;
-  flex-direction: row-reverse;
-  text-align: right;
-}
-
-.flow-node--home {
-  top: 244px;
-  left: calc(70% - 56px);
-  right: auto;
-  transform: none;
-  flex-direction: row;
-  text-align: left;
+  stroke-width: 5;
 }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Area,
   AreaChart,
@@ -14,10 +15,12 @@ import {
   Home,
   Leaf,
   PoundSterling,
+  Server,
   Sun,
   Thermometer,
   TrendingUp,
 } from 'lucide-react';
+import { AppBrand } from '../components/AppBrand';
 
 /**
  * Portrait battery icon with a terminal and 3 horizontal level bars.
@@ -80,30 +83,33 @@ function BatteryLevelIcon({ soc, size = 54 }: { soc: number; size?: number }) {
 
 function PylonIcon({ size = 56, strokeWidth = 2.2 }: { size?: number; strokeWidth?: number }) {
   return (
-    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true" fill="none">
-      <path d="M32 5 14 59M32 5l18 54M22 34h20M18 46h28M25 22h14M20 34l24 12M44 34 20 46" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M23 17h18l-9-12-9 12Z" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      viewBox="0 0 64 64"
+      width={size}
+      height={size}
+      aria-hidden="true"
+      style={{ color: 'currentColor' }}
+    >
+      <g
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M32 6 L18 58" />
+        <path d="M32 6 L46 58" />
+        <path d="M24 30 L40 30" />
+        <path d="M21 42 L43 42" />
+        <path d="M28 18 L36 18" />
+        <path d="M32 6 L32 18" />
+        <path d="M16 24 L48 24" />
+        <path d="M20 24 L28 18" />
+        <path d="M44 24 L36 18" />
+        <path d="M18 58 L32 42 L46 58" />
+      </g>
     </svg>
   );
-}
-
-function InverterIcon({ size = 54, strokeWidth = 2.2 }: { size?: number; strokeWidth?: number }) {
-  return (
-    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true" fill="none">
-      <rect x="18" y="10" width="28" height="44" rx="5" stroke="currentColor" strokeWidth={strokeWidth} />
-      <rect x="23" y="20" width="18" height="7" rx="1.8" stroke="currentColor" strokeWidth={strokeWidth} />
-      <rect x="23" y="32" width="18" height="7" rx="1.8" stroke="currentColor" strokeWidth={strokeWidth} />
-      <circle cx="27" cy="45" r="1.6" fill="currentColor" />
-      <circle cx="33" cy="45" r="1.6" fill="currentColor" />
-      <circle cx="39" cy="45" r="1.6" fill="currentColor" />
-    </svg>
-  );
-}
-
-function ringOffset(progress: number): number {
-  const circumference = 339.292;
-  const clamped = Math.max(0, Math.min(100, progress));
-  return circumference - (circumference * clamped) / 100;
 }
 
 function SunLogoMark({ size = 56 }: { size?: number }) {
@@ -151,10 +157,35 @@ function money(value?: number | null): string {
   return `£${Number(value ?? 0).toFixed(2)}`;
 }
 
-function getGridLabel(gridWatts: number): string {
-  if (gridWatts > 0) return 'Importing';
-  if (gridWatts < 0) return 'Exporting';
+function inferGridFlowWatts(
+  gridWatts: number,
+  solarWatts: number,
+  loadWatts: number,
+  batteryWatts: number,
+): number {
+  // Sunsynk APIs can report grid power with different sign conventions.
+  // Prefer the physical balance when we have all live values:
+  // +ve = importing from grid, -ve = exporting to grid.
+  // Battery +ve means charging, -ve means discharging.
+  const inferred = loadWatts - solarWatts + batteryWatts;
+
+  if (Math.abs(inferred) > 75) {
+    return inferred;
+  }
+
+  return gridWatts;
+}
+
+function getGridLabel(gridFlowWatts: number): string {
+  if (gridFlowWatts > 75) return 'Importing';
+  if (gridFlowWatts < -75) return 'Exporting';
   return 'Balanced';
+}
+
+function getGridTone(gridFlowWatts: number): 'import' | 'export' | 'balanced' {
+  if (gridFlowWatts > 75) return 'import';
+  if (gridFlowWatts < -75) return 'export';
+  return 'balanced';
 }
 
 function getBatteryLabel(powerWatts: number): string {
@@ -167,11 +198,32 @@ function getBatteryIcon(soc: number, size = 54) {
   return <BatteryLevelIcon soc={soc} size={size} />;
 }
 
-function flowSpeed(value: number, max = 3000): string {
+function flowSpeed(value: number, max = 5000): string {
   const clamped = Math.max(0, Math.min(Math.abs(value), max));
   const ratio = clamped / max;
-  const seconds = 1.45 - ratio * 0.85;
-  return `${Math.max(0.45, seconds).toFixed(2)}s`;
+  const seconds = 1.65 - ratio * 1.05;
+  return `${Math.max(0.42, seconds).toFixed(2)}s`;
+}
+
+function flowWidth(value: number, max = 5000): number {
+  const clamped = Math.max(0, Math.min(Math.abs(value), max));
+  const ratio = clamped / max;
+  return 2.2 + ratio * 3.2;
+}
+
+function flowGlow(value: number, max = 5000): number {
+  const clamped = Math.max(0, Math.min(Math.abs(value), max));
+  const ratio = clamped / max;
+  return 8 + ratio * 24;
+}
+
+function flowStyle(value: number): React.CSSProperties {
+  return {
+    '--flow-speed': flowSpeed(value),
+    '--flow-width': `${flowWidth(value)}px`,
+    '--flow-glow': `${flowGlow(value)}px`,
+    '--flow-opacity': `${0.42 + (Math.min(Math.abs(value), 5000) / 5000) * 0.42}`,
+  } as React.CSSProperties;
 }
 
 function getStatusText(secondsSinceUpdate: number | null, loading: boolean): string {
@@ -355,6 +407,7 @@ function FlowNode({
   value,
   status,
   extra,
+  onClick,
 }: {
   className: string;
   circleClassName: string;
@@ -363,46 +416,74 @@ function FlowNode({
   value: string;
   status: string;
   extra?: React.ReactNode;
+  onClick?: () => void;
 }) {
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (!onClick) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClick();
+    }
+  }
+
   return (
-    <div className={`flow-node ${className}`}>
+    <div
+      className={`flow-node ${className} ${onClick ? 'flow-node--clickable' : ''}`}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
+    >
       <div className={`flow-node__circle ${circleClassName}`}>{icon}{extra}</div>
-      {(label || value || status) && (
-        <div className="flow-node__info">
-          <div className="flow-node__label">{label}</div>
-          <div className="flow-node__value">{value}</div>
-          <div className="flow-node__status">{status}</div>
-        </div>
-      )}
+      <div className="flow-node__info">
+        <div className="flow-node__label">{label}</div>
+        <div className="flow-node__value">{value}</div>
+        <div className="flow-node__status">{status}</div>
+      </div>
     </div>
   );
 }
 
-function ArrowRun({
+function FlowPath({
+  id,
   className,
-  count = 5,
-  direction = 'right',
-  speed,
+  d,
+  power,
+  caretCount = 4,
 }: {
+  id: string;
   className: string;
-  count?: number;
-  direction?: 'up' | 'down' | 'left' | 'right';
-  speed: string;
+  d: string;
+  power: number;
+  caretCount?: number;
 }) {
-  const glyph = direction === 'left' ? '‹' : direction === 'right' ? '›' : direction === 'up' ? '⌃' : '⌄';
+  if (Math.abs(power) <= 40) {
+    return null;
+  }
 
   return (
-    <div className={`flow-line ${className}`} style={{ '--flow-speed': speed } as React.CSSProperties}>
-      {Array.from({ length: count }).map((_, index) => (
-        <span className="flow-arrow" style={{ animationDelay: `${index * 0.12}s` }} key={index}>
-          {glyph}
-        </span>
+    <g className={`flow-path-group ${className}`} style={flowStyle(power)}>
+      <path id={id} className="flow-path" d={d} />
+
+      {Array.from({ length: caretCount }).map((_, index) => (
+        <text key={index} className="flow-caret" aria-hidden="true">
+          ›
+          <animateMotion
+            dur={flowSpeed(power)}
+            begin={`${index * 0.28}s`}
+            repeatCount="indefinite"
+            rotate="auto"
+          >
+            <mpath href={`#${id}`} />
+          </animateMotion>
+        </text>
       ))}
-    </div>
+    </g>
   );
 }
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const [data, setData] = useState<LiveSummary | null>(null);
   const [realData, setRealData] = useState<RealLiveSummary | null>(null);
   const [dataMode, setDataMode] = useState<DataMode>('demo');
@@ -419,10 +500,10 @@ export function DashboardPage() {
     if (realData) {
       return {
         solar_w: Number(realData.solar_w ?? realData.power_w ?? 0),
-        load_w: Number(realData.load_w ?? data?.load_w ?? 0),
-        battery_soc: Number(realData.battery_soc ?? data?.battery_soc ?? 0),
-        grid_w: Number(realData.grid_w ?? data?.grid_w ?? 0),
-        battery_w: Number(realData.battery_w ?? data?.battery_w ?? 0),
+        load_w: Number(realData.load_w ?? 0),
+        battery_soc: Number(realData.battery_soc ?? 0),
+        grid_w: Number(realData.grid_w ?? 0),
+        battery_w: Number(realData.battery_w ?? 0),
         timestamp: realData.last_update ?? null,
       };
     }
@@ -446,10 +527,7 @@ export function DashboardPage() {
   }, [displayData?.solar_w]);
 
   const batterySoc = percent(displayData?.battery_soc ?? 0);
-  const gridImporting = (displayData?.grid_w ?? 0) > 0;
   const batteryCharging = (displayData?.battery_w ?? 0) > 0;
-  const batteryDirection = batteryCharging ? 'left' : 'right';
-  const gridDirection = gridImporting ? 'left' : 'right';
 
   const secondsSinceUpdate =
     lastUpdated != null
@@ -557,7 +635,12 @@ export function DashboardPage() {
   const solarW = displayData?.solar_w ?? 0;
   const loadW = displayData?.load_w ?? 0;
   const batteryW = displayData?.battery_w ?? 0;
-  const gridW = displayData?.grid_w ?? 0;
+  const rawGridW = displayData?.grid_w ?? 0;
+  const gridFlowW = inferGridFlowWatts(rawGridW, solarW, loadW, batteryW);
+  const gridW = gridFlowW;
+  const gridLabel = getGridLabel(gridFlowW);
+  const gridTone = getGridTone(gridFlowW);
+  const gridImporting = gridTone === 'import';
   const batteryTempC = 21; // TODO: wire from telemetry once available
   const co2SavedKg = 6.2; // TODO: wire from ROI/telemetry
   const systemMode = 'On Grid';
@@ -571,13 +654,7 @@ export function DashboardPage() {
         <div className="hero-overview__shade" />
 
         <header className="brand-header">
-          <a className="brand-logo" href="/dashboard" aria-label="OpenSynk dashboard">
-            <SunLogoMark size={56} />
-            <span className="brand-logo__text">
-              <strong>Open<span>Synk</span></strong>
-              <em>Powering your world.</em>
-            </span>
-          </a>
+          <AppBrand />
 
           <div className="header-actions">
             <div className={`live-pill ${dataMode === 'live' ? 'live-pill--live' : 'live-pill--demo'}`}>
@@ -621,10 +698,10 @@ export function DashboardPage() {
             tone="battery"
           />
           <MetricTile
-            icon={<PylonIcon size={46} />}
+            icon={<PylonIcon size={44} />}
             title="Grid"
             value={formatKw(gridW)}
-            subtitle={getGridLabel(gridW)}
+            subtitle={gridLabel}
             tone="grid"
           />
           <MetricTile
@@ -651,66 +728,11 @@ export function DashboardPage() {
         </div>
 
         <div className="power-flow-visual">
-          <svg className="flow-paths" viewBox="0 0 1000 390" preserveAspectRatio="none" aria-hidden="true">
-            {/* Straight elbow paths: each connection uses two straight lines with one bend. */}
-            <path
-              className="flow-path flow-path--solar"
-              d="M360 100 H470 V170"
-              style={{ '--flow-speed': flowSpeed(solarW) } as React.CSSProperties}
-            />
-            <path
-              className={`flow-path ${gridImporting ? 'flow-path--grid-import' : 'flow-path--grid-export'}`}
-              d="M640 100 H530 V170"
-              style={{ '--flow-speed': flowSpeed(gridW) } as React.CSSProperties}
-            />
-            <path
-              className={`flow-path ${batteryCharging ? 'flow-path--battery-charge' : 'flow-path--battery-discharge'}`}
-              d="M470 230 V300 H360"
-              style={{ '--flow-speed': flowSpeed(batteryW) } as React.CSSProperties}
-            />
-            <path
-              className="flow-path flow-path--home"
-              d="M530 230 V300 H640"
-              style={{ '--flow-speed': flowSpeed(loadW) } as React.CSSProperties}
-            />
-
-            {solarW > 0 && (
-              <circle className="flow-dot flow-dot--solar" r="6">
-                <animateMotion dur={flowSpeed(solarW)} repeatCount="indefinite" path="M360 100 H470 V170" />
-              </circle>
-            )}
-
-            {Math.abs(gridW) > 0 && (
-              <circle className={gridImporting ? 'flow-dot flow-dot--grid-import' : 'flow-dot flow-dot--grid-export'} r="6">
-                <animateMotion
-                  dur={flowSpeed(gridW)}
-                  repeatCount="indefinite"
-                  path={gridImporting ? 'M640 100 H530 V170' : 'M530 170 V100 H640'}
-                />
-              </circle>
-            )}
-
-            {Math.abs(batteryW) > 0 && (
-              <circle className="flow-dot flow-dot--battery" r="6">
-                <animateMotion
-                  dur={flowSpeed(batteryW)}
-                  repeatCount="indefinite"
-                  path={batteryCharging ? 'M470 230 V300 H360' : 'M360 300 H470 V230'}
-                />
-              </circle>
-            )}
-
-            {loadW > 0 && (
-              <circle className="flow-dot flow-dot--home" r="6">
-                <animateMotion dur={flowSpeed(loadW)} repeatCount="indefinite" path="M530 230 V300 H640" />
-              </circle>
-            )}
-          </svg>
-
           <FlowNode
             className="flow-node--solar"
+            onClick={() => navigate('/history')}
             circleClassName="flow-node__circle--solar"
-            icon={<Sun size={52} strokeWidth={2.15} />}
+            icon={<Sun size={58} strokeWidth={2.15} />}
             label="Solar"
             value={formatKw(solarW)}
             status={`${solarEfficiency}% Efficiency`}
@@ -723,7 +745,7 @@ export function DashboardPage() {
                     cx="60"
                     cy="60"
                     r="54"
-                    style={{ strokeDashoffset: ringOffset(solarEfficiency) }}
+                    style={{ '--ring-progress': solarEfficiency } as React.CSSProperties}
                   />
                 </svg>
                 <div className="solar-percent" aria-label={`Solar ${solarEfficiency}% efficiency`}>
@@ -732,29 +754,21 @@ export function DashboardPage() {
               </>
             }
           />
-
           <FlowNode
-            className="flow-node--grid"
-            circleClassName={gridImporting ? 'flow-node__circle--grid-import' : 'flow-node__circle--grid-export'}
-            icon={<PylonIcon size={58} strokeWidth={2.15} />}
-            label="Grid"
-            value={formatKw(gridW)}
-            status={getGridLabel(gridW)}
-          />
-
-          <FlowNode
-            className="flow-node--inverter"
-            circleClassName="flow-node__circle--inverter"
-            icon={<InverterIcon size={52} strokeWidth={2.1} />}
-            label="Inverter"
-            value=""
+            className="flow-node--home"
+            onClick={() => navigate('/alerts')}
+            circleClassName="flow-node__circle--home"
+            icon={<Home size={60} strokeWidth={2.15} />}
+            label="Home"
+            value={formatKw(loadW)}
             status=""
           />
 
           <FlowNode
             className="flow-node--battery"
+            onClick={() => navigate('/battery')}
             circleClassName="flow-node__circle--battery"
-            icon={getBatteryIcon(batterySoc, 48)}
+            icon={getBatteryIcon(batterySoc, 50)}
             label="Battery"
             value={formatKw(batteryW)}
             status={getBatteryLabel(batteryW)}
@@ -767,7 +781,7 @@ export function DashboardPage() {
                     cx="60"
                     cy="60"
                     r="54"
-                    style={{ strokeDashoffset: ringOffset(batterySoc) }}
+                    style={{ '--ring-progress': batterySoc } as React.CSSProperties}
                   />
                 </svg>
                 <div className="battery-percent" aria-label={`Battery ${batterySoc}%`}>
@@ -778,13 +792,58 @@ export function DashboardPage() {
           />
 
           <FlowNode
-            className="flow-node--home"
-            circleClassName="flow-node__circle--home"
-            icon={<Home size={56} strokeWidth={2.15} />}
-            label="Home"
-            value={formatKw(loadW)}
-            status="Consuming"
+            className="flow-node--grid"
+            onClick={() => navigate('/tariffs')}
+            circleClassName={gridImporting ? 'flow-node__circle--grid-import' : 'flow-node__circle--grid-export'}
+            icon={<PylonIcon size={62} strokeWidth={2.05} />}
+            label="Grid"
+            value={formatKw(gridW)}
+            status={gridLabel}
           />
+
+          <FlowNode
+            className="flow-node--inverter"
+            circleClassName="flow-node__circle--inverter"
+            icon={<Server size={50} strokeWidth={2.2} />}
+            label="Inverter"
+            value=""
+            status=""
+          />
+
+          <svg
+            className="flow-paths"
+            viewBox="0 0 1000 360"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <FlowPath
+              id="flow-solar-inverter"
+              className="flow-path--solar"
+              d="M318 80 H410 L500 180"
+              power={solarW}
+            />
+
+            <FlowPath
+              id="flow-grid-inverter"
+              className={gridImporting ? 'flow-path--grid-import' : 'flow-path--grid-export'}
+              d={gridImporting ? 'M682 80 H590 L500 180' : 'M500 180 L590 80 H682'}
+              power={gridFlowW}
+            />
+
+            <FlowPath
+              id="flow-battery-inverter"
+              className={batteryW > 0 ? 'flow-path--battery-charge' : 'flow-path--battery-discharge'}
+              d={batteryW > 0 ? 'M500 180 L410 280 H318' : 'M318 280 H410 L500 180'}
+              power={batteryW}
+            />
+
+            <FlowPath
+              id="flow-inverter-home"
+              className="flow-path--home"
+              d="M500 180 L590 280 H682"
+              power={loadW}
+            />
+          </svg>
         </div>
 
         <div className="flow-legend">
@@ -939,11 +998,11 @@ export function DashboardPage() {
           captionTone="mute"
         />
         <MiniTile
-          icon={<PylonIcon size={28} />}
+          icon={<PylonIcon size={26} />}
           tone="grid"
           label="Grid"
           value={formatKw(gridW)}
-          caption={getGridLabel(gridW)}
+          caption={gridLabel}
           captionTone="mute"
         />
         <MiniTile

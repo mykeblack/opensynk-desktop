@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { login } from '../api/auth';
+import { AppBrand } from '../components/AppBrand';
 import './LoginPage.css';
 
 type AppMode = 'demo' | 'live';
@@ -58,10 +59,9 @@ export default function LoginPage({ onLogin }: Props) {
   return (
     <div className="login-page">
       <div className="login-card">
-        <h1>OpenSynk</h1>
-        <p className="login-subtitle">
-          Monitor your solar, battery, and energy usage
-        </p>
+        <div className="login-brand-wrap">
+          <AppBrand href="" />
+        </div>
 
         <form onSubmit={handleSubmit}>
           <div className="login-field">
