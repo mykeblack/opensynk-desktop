@@ -109,11 +109,6 @@ body{
   pointer-events: auto;
 }
 
-/* If console mode adds Exit as a 7th item */
-body.console-mode .bottom-nav__inner {
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-}
-
 /* Console mode must NOT hide the footer */
 body.console-mode .bottom-nav {
   display: block !important;
