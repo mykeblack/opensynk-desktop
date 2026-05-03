@@ -448,16 +448,22 @@ body.console-mode .settings-page-title {
 
 @media (max-width: 980px) {
   .settings-layout-modern {
-    grid-template-columns: 1fr;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
   }
 
   .settings-card--account,
-  .settings-card--display,
-  .settings-card--security,
   .settings-card--inverter,
   .settings-card--solar,
-  .settings-card--system {
-    grid-column: auto;
+  .settings-card--system,
+  .settings-card--display,
+  .settings-card--security {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    width: 100%;
+    min-width: 0;
   }
 
   .page-hero-card {
@@ -492,5 +498,70 @@ body.console-mode .settings-page-title {
 
   .settings-toggle-row {
     grid-template-columns: 38px minmax(0, 1fr) auto;
+  }
+}
+
+/* Mobile one-column safety fixes.
+   These stop explicit desktop grid placement from squeezing cards into
+   two columns on narrow screens. */
+@media (max-width: 760px) {
+  .settings-page {
+    overflow-x: hidden;
+  }
+
+  .settings-layout-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .settings-card {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .settings-card--account,
+  .settings-card--inverter,
+  .settings-card--solar,
+  .settings-card--system,
+  .settings-card--display,
+  .settings-card--security {
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+
+  .settings-card__header,
+  .settings-card__header > div {
+    min-width: 0;
+  }
+
+  .settings-field select,
+  .settings-field input {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .page-hero-card {
+    padding: 20px;
+  }
+
+  .settings-card {
+    padding: 16px;
+  }
+
+  .settings-card__header {
+    gap: 12px;
+  }
+
+  .settings-card__icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
   }
 }

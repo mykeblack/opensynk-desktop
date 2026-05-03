@@ -1097,6 +1097,12 @@
     overflow: visible;
   }
 
+  body.console-mode .power-flow-visual {
+    height: 560px !important;
+    margin-top: 30px !important;
+    margin-bottom: 30px !important;
+  }
+
   .flow-node {
     position: relative !important; /* anchor for ::before / ::after arrows */
     top: auto !important;
