@@ -5,7 +5,6 @@ import {
   Bell,
   Clock3,
   Home,
-  LogOut,
   PoundSterling,
   Settings,
 } from 'lucide-react';

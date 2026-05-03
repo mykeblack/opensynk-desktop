@@ -392,8 +392,12 @@ class SunsynkClient:
         except Exception:
             pass
 
+        # Energy balance: load = solar + grid_import - battery_charge
+        # Sign conventions (matching sample_generator.py):
+        #   grid_w    > 0 = importing from grid, < 0 = exporting
+        #   battery_w > 0 = charging,            < 0 = discharging
         solar_w = max(inverter_power_w, 0)
-        load_w = max(int(solar_w - grid_w - battery_w), 0)
+        load_w = max(int(solar_w + grid_w - battery_w), 0)
 
         return {
             "sn": selected.get("sn"),
