@@ -986,57 +986,54 @@
     padding: 18px 14px;
   }
 
+  /* Tablet: stop fighting absolute positioning. Use a 2-col grid that
+     sizes itself to the actual content height so nodes can never overlap. */
   .power-flow-visual {
-    height: 560px;
-    min-height: 560px;
+    height: auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "solar    grid"
+      "inverter inverter"
+      "battery  home";
+    gap: 28px 16px;
+    padding: 12px 4px 4px;
+    overflow: visible;
   }
 
-  .flow-paths {
-    display: none;
-  }
+  .flow-paths { display: none; }
 
+  /* Reset every desktop absolute-position rule so the grid can take over. */
   .flow-node {
+    position: static;
+    top: auto;
+    left: auto;
+    right: auto;
     transform: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
   }
 
-  .flow-node--solar {
-    top: 10px;
-    left: 20px;
-    flex-direction: row-reverse;
-  }
+  .flow-node--solar    { grid-area: solar; }
+  .flow-node--grid     { grid-area: grid; }
+  .flow-node--inverter { grid-area: inverter; }
+  .flow-node--battery  { grid-area: battery; }
+  .flow-node--home     { grid-area: home; }
 
-  .flow-node--grid {
-    top: 10px;
-    left: auto;
-    right: 20px;
-  }
-
-  .flow-node--inverter {
-    top: 205px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .flow-node--battery {
-    top: 395px;
-    left: 20px;
-    flex-direction: row-reverse;
-  }
-
-  .flow-node--home {
-    top: 395px;
-    left: auto;
-    right: 20px;
+  .flow-node--solar .flow-node__info,
+  .flow-node--battery .flow-node__info,
+  .flow-node__info {
+    text-align: center;
+    min-width: 0;
   }
 
   .flow-node__circle {
     width: 96px;
     height: 96px;
     flex-basis: 96px;
-  }
-
-  .flow-node__info {
-    min-width: 95px;
   }
 
   .solar-efficiency-ring,
@@ -1073,28 +1070,182 @@
     border-bottom: 0;
   }
 
+  /* Mobile / portrait: 2-column grid with the inverter spanning the middle
+     row, plus animated flow lines between the rows.
+
+     Grid layout:
+       Row 1:  [ Solar  ] [ Grid  ]
+       Row 2:  [   Inverter (centered)   ]
+       Row 3:  [ Battery] [ Home  ]
+
+     Flow arrows are drawn with pseudo-elements on the four corner nodes —
+     no JSX change required. The animated dashed gradient scrolls downward
+     to convey energy flowing into the inverter (top arrows) and out of the
+     inverter into the bottom nodes (bottom arrows). */
   .power-flow-visual {
-    height: 720px;
-    min-height: 720px;
+    position: relative;
+    height: auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "solar    grid"
+      "inverter inverter"
+      "battery  home";
+    gap: 72px 16px;
+    padding: 8px 4px 4px;
+    overflow: visible;
   }
 
   .flow-node {
-    left: 50% !important;
+    position: relative !important; /* anchor for ::before / ::after arrows */
+    top: auto !important;
+    left: auto !important;
     right: auto !important;
-    transform: translateX(-50%) !important;
+    transform: none !important;
     flex-direction: column !important;
+    align-items: center !important;
     text-align: center !important;
+    /* 18px keeps the SOLAR/BATTERY labels clear of the ring + drop-shadow glow */
+    gap: 18px;
+    width: auto;
+    max-width: none;
   }
+
+  .flow-node--solar    { grid-area: solar; }
+  .flow-node--grid     { grid-area: grid; }
+  .flow-node--inverter { grid-area: inverter; justify-self: center; }
+  .flow-node--battery  { grid-area: battery; }
+  .flow-node--home     { grid-area: home; }
 
   .flow-node__info {
     text-align: center !important;
+    min-width: 0 !important;
   }
 
-  .flow-node--solar { top: 10px; }
-  .flow-node--grid { top: 150px; }
-  .flow-node--inverter { top: 300px; }
-  .flow-node--battery { top: 450px; }
-  .flow-node--home { top: 590px; }
+  /* Hide the "INVERTER" label on portrait. On landscape the label sits to
+     the side, but here it would sit between the circle and the row gap —
+     pushing the bottom flow lines well clear of the circle and creating
+     a visible disconnect, especially on taller screens. The orange ring +
+     server icon are sufficient identification. */
+  .flow-node--inverter .flow-node__info {
+    display: none;
+  }
+
+  /* Animated flow lines — thin continuous elbow paths matching landscape.
+
+     Each pseudo-element is sized to span exactly from its node's column
+     centre to the inverter's centre (`width: calc(50% + 8px)` resolves to
+     half-column-width + half-gap, which is geometrically the distance from
+     a column centre to the container centre in any 1fr 1fr grid with a
+     16px gap).
+
+     `height: 80px` deliberately exceeds the 72px row gap by 8px so that
+     the path's terminal point can sit *inside* the inverter circle (at
+     viewBox y=90 for top arrows, y=10 for bottom arrows). With a 3px
+     stroke cap radius added on top of that, the line visibly crosses
+     into the ring rather than ending in dead space — the "connecting"
+     look the user asked for.
+
+     Each mask SVG is now:
+       - A thin SOLID elbow line (stroke-width 2.5, no dasharray, opacity
+         0.7) — the track. Continuous, not dotted.
+       - Three chevron `›` carets riding the path via `<animateMotion>
+         <mpath/></animateMotion>`, staggered 0.5s apart on a 1.5s loop,
+         with `rotate='auto'` so each caret tilts to follow the path
+         tangent through the bend.
+
+     `vector-effect: non-scaling-stroke` keeps the stroke width constant
+     when the SVG stretches with the viewport. `mask-mode: alpha` makes
+     element opacity drive the mask alpha, so the 0.7-opacity line track
+     is dimmer than the full-opacity carets — same hierarchy as landscape.
+
+     Note: `#p` references inside the SVG must be URL-encoded as `%23p`
+     or the URL parser truncates the data URL at the `#`. */
+  .flow-node--solar::after,
+  .flow-node--grid::after,
+  .flow-node--battery::before,
+  .flow-node--home::before {
+    content: '';
+    position: absolute;
+    height: 80px;
+    width: calc(50% + 8px); /* node centre → inverter centre */
+    background-color: currentColor;
+    -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    -webkit-mask-mode: alpha;
+            mask-mode: alpha;
+    filter:
+      drop-shadow(0 0 4px currentColor)
+      drop-shadow(0 0 12px currentColor);
+    pointer-events: none;
+  }
+
+  /* Solar (top-left) → Inverter: vertical down on the LEFT, then diagonal
+     to viewBox (95, 90) — the inverter circle's top edge. Anchored at the
+     source bottom (`top: 100%`) with no offset so the line touches solar. */
+  .flow-node--solar::after {
+    top: 100%;
+    left: 50%;
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path id='p' d='M 5 4 V 48 L 95 90' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none' vector-effect='non-scaling-stroke' opacity='0.7'/><g fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' vector-effect='non-scaling-stroke'><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0.5s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='1s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path></g></svg>");
+            mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path id='p' d='M 5 4 V 48 L 95 90' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none' vector-effect='non-scaling-stroke' opacity='0.7'/><g fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' vector-effect='non-scaling-stroke'><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0.5s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='1s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path></g></svg>");
+  }
+
+  /* Grid (top-right) → Inverter: mirror of solar — vertical on the right,
+     diagonal to viewBox (5, 90). */
+  .flow-node--grid::after {
+    top: 100%;
+    right: 50%;
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path id='p' d='M 95 4 V 48 L 5 90' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none' vector-effect='non-scaling-stroke' opacity='0.7'/><g fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' vector-effect='non-scaling-stroke'><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0.5s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='1s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path></g></svg>");
+            mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path id='p' d='M 95 4 V 48 L 5 90' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none' vector-effect='non-scaling-stroke' opacity='0.7'/><g fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' vector-effect='non-scaling-stroke'><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0.5s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='1s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path></g></svg>");
+  }
+
+  /* Inverter → Battery (bottom-left): path starts at viewBox (95, 10) —
+     inside the inverter circle's lower edge — diagonals down-left, then
+     drops vertically into the battery column centre. */
+  .flow-node--battery::before {
+    bottom: 100%;
+    left: 50%;
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path id='p' d='M 95 10 L 5 52 V 96' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none' vector-effect='non-scaling-stroke' opacity='0.7'/><g fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' vector-effect='non-scaling-stroke'><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0.5s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='1s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path></g></svg>");
+            mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path id='p' d='M 95 10 L 5 52 V 96' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none' vector-effect='non-scaling-stroke' opacity='0.7'/><g fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' vector-effect='non-scaling-stroke'><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0.5s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='1s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path></g></svg>");
+  }
+
+  /* Inverter → Home (bottom-right): mirror of battery — diagonal from
+     (5, 10), vertical down into the home column. */
+  .flow-node--home::before {
+    bottom: 100%;
+    right: 50%;
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path id='p' d='M 5 10 L 95 52 V 96' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none' vector-effect='non-scaling-stroke' opacity='0.7'/><g fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' vector-effect='non-scaling-stroke'><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0.5s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='1s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path></g></svg>");
+            mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path id='p' d='M 5 10 L 95 52 V 96' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none' vector-effect='non-scaling-stroke' opacity='0.7'/><g fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' vector-effect='non-scaling-stroke'><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='0.5s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path><path d='M -7 -5 L 0 0 L -7 5'><animateMotion dur='1.5s' begin='1s' repeatCount='indefinite' rotate='auto'><mpath href='%23p'/></animateMotion></path></g></svg>");
+  }
+
+  /* Per-line colours, matching the existing palette */
+  .flow-node--solar::after    { color: var(--solar); }
+  .flow-node--battery::before { color: var(--battery); }
+  .flow-node--home::before    { color: var(--home); }
+
+  /* Grid arrow tracks whichever direction the connection is in.
+     Falls back to import-red if :has() isn't available. */
+  .flow-node--grid::after { color: var(--grid-import); }
+  .flow-node--grid:has(.flow-node__circle--grid-export)::after {
+    color: var(--grid-export);
+  }
+
+  /* Slightly smaller circles so the 2-column grid breathes on phones */
+  .flow-node__circle {
+    width: 84px;
+    height: 84px;
+    flex-basis: 84px;
+  }
+
+  .solar-efficiency-ring,
+  .battery-soc-ring {
+    width: 96px;
+    height: 96px;
+    inset: -6px;
+  }
 
   .dashboard-tiles {
     grid-template-columns: 1fr;

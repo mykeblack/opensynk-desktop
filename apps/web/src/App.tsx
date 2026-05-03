@@ -30,7 +30,7 @@ function getStoredSessionToken(): string {
 
 export default function App() {
   const location = useLocation();
-
+  const isLoginPage = location.pathname === '/login';
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(getStoredSessionToken()));
   const [appMode, setAppMode] = useState<AppMode>(
     (localStorage.getItem('opensynk_mode') as AppMode) || 'demo',
